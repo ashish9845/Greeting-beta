@@ -35,9 +35,31 @@
             cursor: pointer;
             display: inline-block;
             padding: 0 0.5rem;
-            /* Added transition for smooth move effect */
-            transition: transform 1s ease-in-out;
+            /* Added transition for smooth move effect and font changes */
+            transition: transform 1s ease-in-out, font-size 0.5s ease-out;
         }
+
+        /* Responsive font size for dynamic greeting text */
+        .greeting-small {
+            font-size: 4rem;
+            /* Smaller font for phrases like Good Morning */
+        }
+
+        .greeting-large {
+            font-size: 7rem;
+            /* Default large font for single words like Namaste */
+        }
+
+        @media (min-width: 639px) {
+            .greeting-small {
+                font-size: 5rem;
+            }
+
+            .greeting-large {
+                font-size: 8rem;
+            }
+        }
+
 
         /* Custom style applied specifically to the time display */
         #time {
@@ -49,7 +71,7 @@
 
         /* --- STATE CLASS: Shrunk and Moved --- */
 
-        /* When 'shrunk' class is applied to Namaste: move up by 150px, NO scaling */
+        /* When 'shrunk' class is applied to Namaste: move up by 200px, NO scaling */
         #greeting-text.shrunk {
             /* Adjusted translateY to move it higher up */
             transform: translateY(-200px);
@@ -272,7 +294,6 @@
             transition: opacity 0.5s ease-in-out;
             max-width: 90vw;
             /* Ensures it never exceeds 90% of mobile width */
-            /* Removed fixed width: 500px to rely on w-full and md:max-w-lg classes below for responsiveness */
             min-height: 250px;
             padding: 1.5rem;
             border: 2px solid #4D4943;
@@ -340,11 +361,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715h5.25" />
                 </svg>
-                <h2 class="text-3xl font-bold mb-3 text-[#4285F4]">Experimental Zone</h2>
+                <h2 class="text-3xl font-bold mb-3 text-[#4285F4]">Experimental Zone (Beta)</h2>
                 <p class="text-gray-300 text-lg">
                     <!-- UPDATED MESSAGE CONTENT AND BOLDING -->
-                    This is an <strong class="text-[#EA4335]">experimental website</strong> created purely for time
-                    pass. Expect some overlapping elements or misaligned content.
+                    This is the <strong class="text-[#FBBC04]">beta version</strong>! The main greeting now changes
+                    based on the time of day. Expect some overlapping elements or misaligned content.
                 </p>
                 <p id="modal-countdown-text" class="text-sm mt-3 text-gray-500">
                     <!-- ID for live countdown is here -->
@@ -409,7 +430,10 @@
 
     <!-- Main Content (Center) -->
     <main class="flex flex-col items-center justify-center text-center p-6 rounded-xl relative">
-        <h1 id="greeting-text" class="text-7xl sm:text-8xl font-bold" onclick="animateGreetingAndTime()">Namaste 🙏</h1>
+        <!-- Added dynamic classes for font sizing based on content -->
+        <h1 id="greeting-text" class="font-bold greeting-large" onclick="animateGreetingAndTime()">
+            <!-- Initial content will be set by JavaScript -->
+        </h1>
 
         <!-- Quote Container (Now positioned absolutely for centering) -->
         <div id="quote-container" class="flex flex-col items-center justify-center hidden w-full md:max-w-lg">
@@ -434,21 +458,17 @@
         const quoteContainerEl = document.getElementById('quote-container'); // Quote Container
         const quoteTextEl = document.getElementById('quote-text'); // Quote Text element
         const quoteAuthorEl = document.getElementById('quote-author'); // Quote Author element
-        const englishDateContainerEl = document.getElementById('english-date-container'); // NEW: English Date Container
+        const englishDateContainerEl = document.getElementById('english-date-container'); // English Date Container
 
         // --- Intro Modal Constants and Elements ---
         const MODAL_TIMEOUT_MS = 10000;
         const introModalOverlayEl = document.getElementById('intro-modal-overlay');
         const introModalEl = document.getElementById('intro-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
-        // Element for the live countdown text
         const modalCountdownTextEl = document.getElementById('modal-countdown-text');
-
-        // Global variable to track the countdown interval
         let countdownIntervalId = null;
 
-
-        // --- Intro Modal Logic ---
+        // --- Intro Modal Logic (Unchanged) ---
 
         /**
          * Clears the countdown interval and resets the display text.
@@ -476,7 +496,6 @@
                 if (secondsLeft >= 0) {
                     modalCountdownTextEl.textContent = `(Auto-closing in ${secondsLeft} seconds)`;
                 }
-                // The interval will be cleared by closeIntroModal when the timer runs out
             }, 1000);
         }
 
@@ -528,21 +547,16 @@
 
         /**
          * Initializes the intro modal to show on every page load.
-         * Note: Removed localStorage check to make it appear every time.
          */
         function initializeIntroModal() {
             showIntroModal();
-
-            // Attach event listener to the close button
             closeModalBtn.addEventListener('click', closeIntroModal);
         }
 
 
-        // --- Quotes Data and State (No change) ---
+        // --- Quotes Data and State (Unchanged) ---
 
-        // Pause time after typing completes (5 seconds)
         const QUOTE_PAUSE_TIME_MS = 5000;
-
         const QUOTES = [
             { content: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
             { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
@@ -562,8 +576,8 @@
             { content: "Dream big and dare to fail.", author: "Norman Vaughan" }
         ];
 
-        let quoteInterval = null; // Holds the ID for recursive setTimeout
-        let currentTypingTimeout = null; // Tracks the active typewriter timeout
+        let quoteInterval = null;
+        let currentTypingTimeout = null;
 
         /**
          * Gets a random quote from the QUOTES array.
@@ -573,7 +587,7 @@
             return QUOTES[randomIndex];
         }
 
-        // --- Typewriter and Quote Rotation Logic (No change) ---
+        // --- Typewriter and Quote Rotation Logic (Unchanged) ---
 
         /**
          * Simulates a typewriter effect by typing text character by character.
@@ -663,7 +677,7 @@
         }
 
 
-        // --- Greeting Animation Logic (No change) ---
+        // --- Greeting Animation Logic (Unchanged) ---
 
         /**
          * Toggles the 'shrunk' class to smoothly move the greeting, time, and date elements.
@@ -675,7 +689,6 @@
             timeEl.classList.toggle('shrunk');
 
             // Toggle classes on the English dates container for the fade/slide effect
-            // English date elements themselves have the shrinking class applied for their transform/opacity
             englishDateEl.classList.toggle('shrunk');
             englishWeekdayEl.classList.toggle('shrunk');
 
@@ -705,7 +718,7 @@
             }
         }
 
-        // --- Author Slide Animation Logic (No change) ---
+        // --- Author Slide Animation Logic (Unchanged) ---
         function slideAwayAuthor() {
             if (authorCreditEl.classList.contains('slide-moved')) {
                 socialIconsEl.classList.remove('icon-visible');
@@ -729,7 +742,24 @@
             }
         }
 
-        // --- Clock and Date Logic (No change) ---
+        // --- Clock and Date Logic (MODIFIED) ---
+
+        /**
+         * Determines the appropriate greeting based on the current hour.
+         * @param {number} hour - The current hour (0-23).
+         * @returns {Object} An object containing the greeting text and the associated class name for styling.
+         */
+        function getDynamicGreeting(hour) {
+            if (hour >= 5 && hour < 12) {
+                return { text: "Good Morning ☀️", className: "greeting-small" }; // 5:00 AM to 11:59 AM
+            } else if (hour >= 12 && hour < 17) {
+                return { text: "Good Afternoon ☕", className: "greeting-small" }; // 12:00 PM to 4:59 PM
+            } else if (hour >= 17 && hour < 22) {
+                return { text: "Good Evening 🌙", className: "greeting-small" }; // 5:00 PM to 9:59 PM
+            } else {
+                return { text: "Namaste 🙏", className: "greeting-large" }; // 10:00 PM to 4:59 AM (default/late night)
+            }
+        }
 
         /**
          * Converts the 24-hour format time components to a 12-hour formatted string.
@@ -750,11 +780,24 @@
         }
 
         /**
-         * Function to update time, called every second.
+         * Function to update time and greeting, called every second.
          */
         function updateTime() {
             const now = new Date();
+            const hour = now.getHours();
+
+            // Update Time Clock
             timeEl.textContent = formatTime(now);
+
+            // Update Dynamic Greeting (Only update if the current text is not the placeholder quote)
+            if (!greetingTextEl.classList.contains('shrunk')) {
+                const { text, className } = getDynamicGreeting(hour);
+                greetingTextEl.textContent = text;
+
+                // Dynamically apply responsive class for font sizing
+                greetingTextEl.classList.remove('greeting-small', 'greeting-large');
+                greetingTextEl.classList.add(className);
+            }
         }
 
         // Function to update dates
@@ -776,6 +819,7 @@
             // Nepali Date
             try {
                 if (typeof NepaliDate !== 'undefined') {
+                    // Nepali Date Converter is available
                     const nd = new NepaliDate(now);
                     const nepaliDateStr = nd.format('MMMM D, YYYY');
                     nepaliDateEl.textContent = nepaliDateStr + ' B.S.';
@@ -809,10 +853,12 @@
          */
         function startClockAndDates() {
             // Call functions immediately to load data
-            updateTime();
             updateDates();
 
-            // Set intervals
+            // IMPORTANT: Call updateTime first to set the initial dynamic greeting and clock
+            updateTime();
+
+            // Set intervals (updateTime handles both clock and greeting)
             setInterval(updateTime, 1000);
             // Dates only need to update every minute
             setInterval(updateDates, 60000);
@@ -821,10 +867,10 @@
             document.addEventListener('visibilitychange', handleVisibilityChange);
         }
 
-        // --- Console Logging Function (No change) ---
+        // --- Console Logging Function (MODIFIED TIMESTAMP) ---
 
-        // The time this file was last edited (2025/11/13, 9:48 PM)
-        const LAST_UPDATED_TIMESTAMP_STRING = "2025-11-13T21:48:00";
+        // The time this file was last edited (2025/11/28, 10:12 AM)
+        const LAST_UPDATED_TIMESTAMP_STRING = "2025-11-28T10:12:00";
 
         /**
          * Logs the last updated timestamp to the console in the format YYYY/MM/DD-HH:MM AM/PM.
