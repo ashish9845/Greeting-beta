@@ -42,30 +42,6 @@
             border-right: 0.15em solid transparent;
         }
 
-        /* Custom style applied specifically to the Author Text */
-        #author-credit {
-            font-family: 'Dancing Script', cursive;
-            transition: all 0.7s ease-out;
-            /* Text Color Animation Styles */
-            background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC04, #34A853, #4285F4);
-            background-size: 400% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: waveColorShift 8s linear infinite;
-            cursor: pointer;
-        }
-
-        @keyframes waveColorShift {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            100% {
-                background-position: 400% 50%;
-            }
-        }
-
         /* Class for hiding/fading elements when shrinking (Used for English date and Nepali date) */
         .shrunk {
             opacity: 0 !important;
@@ -120,16 +96,18 @@
         #header-content:not(.active-state) {
             padding-bottom: 1.5rem;
         }
+
+        /* Ensure social icons are always visible and positioned correctly */
+        #social-icons {
+            opacity: 1;
+            pointer-events: auto;
+            /* Remove transitions related to hiding/showing */
+            transition: none;
+        }
     </style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
-
-    <!-- BETA Indicator (Top Left) - Now Clickable -->
-    <div onclick="showBetaModal()"
-        class="fixed top-4 left-4 text-sm font-extrabold text-red-400 bg-red-900/20 px-2 py-1 rounded-lg tracking-widest border border-red-500/30 shadow-md z-30 cursor-pointer transition-colors hover:bg-red-800/30">
-        BETA
-    </div>
 
     <!-- Main Content Card -->
     <div id="main-card"
@@ -155,7 +133,6 @@
             </p>
 
             <!-- Separator Line between time block and greeting block -->
-            <!-- Starts hidden (opacity-0) -->
             <div id="header-separator"
                 class="h-px bg-gray-700 w-full mx-auto mt-6 mb-6 transition-opacity duration-500 opacity-0"></div>
         </header>
@@ -180,40 +157,35 @@
                 </blockquote>
             </div>
         </main>
-
-        <!-- BUTTONS REMOVED -->
     </div>
 
-    <!-- Custom Text (Bottom Right) -->
-    <p id="author-credit" class="fixed bottom-6 right-4 text-3xl font-semibold z-10" onclick="slideAwayAuthor()">
-        Loading Author...
-    </p>
-
-    <!-- Social Media Icons Container - Initially Hidden -->
-    <div id="social-icons"
-        class="fixed bottom-6 right-4 flex space-x-4 opacity-0 pointer-events-none z-20 transition-all duration-500">
-        <!-- Instagram Icon --><a href="https://www.instagram.com/_aashish_dahal/" target="_blank" title="Instagram">
-            <svg class="w-7 h-7 hover:text-pink-500 transition-colors" viewBox="0 0 24 24" fill="none"
-                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+    <!-- Social Media Icons Container - Now permanently visible and active -->
+    <div id="social-icons" class="fixed bottom-6 right-4 flex space-x-4 z-20 transition-all duration-500">
+        <!-- Instagram Icon -->
+        <a href="https://www.instagram.com/_aashish_dahal/" target="_blank" title="Instagram"
+            class="text-gray-300 hover:text-pink-500 transition-colors">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                 <line x1="17.5" x2="17.5" y1="6.5" y2="6.5" />
             </svg>
         </a>
 
-        <!-- Facebook Icon --><a href="https://www.facebook.com/ashish.dahal.555186" target="_blank" title="Facebook">
-            <svg class="w-7 h-7 hover:text-blue-600 transition-colors" viewBox="0 0 24 24" fill="none"
-                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+        <!-- Facebook Icon -->
+        <a href="https://www.facebook.com/ashish.dahal.555186" target="_blank" title="Facebook"
+            class="text-gray-300 hover:text-blue-600 transition-colors">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
             </svg>
         </a>
 
-        <!-- WhatsApp Icon --><a href="https://wa.me/9779865102989" target="_blank" title="WhatsApp">
-            <svg class="w-7 h-7 hover:text-green-500 transition-colors" viewBox="0 0 24 24" fill="none"
-                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
+        <!-- WhatsApp Icon -->
+        <a href="https://wa.me/9779865102989" target="_blank" title="WhatsApp"
+            class="text-gray-300 hover:text-green-500 transition-colors">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
                     d="M12 2C6.477 2 2 6.477 2 12c0 1.974.551 3.829 1.551 5.433L2.5 21.5l4.133-1.051C8.171 21.449 10.026 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
                 <path d="M12 16c-1.105 0-2-.895-2-2v-4c0-1.105.895-2 2-2h4c1.105 0 2 .895 2 2v4c0 1.105-.895 2-2 2h-4z"
@@ -222,42 +194,12 @@
         </a>
     </div>
 
-    <!-- Beta Modal Container - Hidden by default -->
-    <div id="beta-modal"
-        class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <!-- Modal Content -->
-        <div id="modal-content"
-            class="bg-[#2D2C31] p-8 md:p-10 rounded-2xl shadow-xl max-w-sm w-11/12 transform scale-90 transition-all duration-300">
-            <h2 class="text-3xl font-bold text-red-400 mb-4 flex items-center">
-                <svg class="w-7 h-7 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.3 16c-.77 1.333.192 3 1.732 3z">
-                    </path>
-                </svg>
-                Beta Version Warning
-            </h2>
-            <p class="text-gray-300 mb-6 leading-relaxed">
-                This is a developmental **Beta** release. While we've done our best, you may encounter
-                unexpected bugs, broken functionality, or misbehaving elements.
-            </p>
-            <p class="text-sm text-yellow-400 mb-6 font-medium">
-                Please reload the page if things go wrong!
-            </p>
-            <button onclick="hideBetaModal()"
-                class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition duration-300 shadow-md shadow-red-700/50">
-                Acknowledge & Continue
-            </button>
-        </div>
-    </div>
-
     <!-- JavaScript Logic -->
     <script>
         // --- Configuration & Constants ---
 
         // The date/time of the last known update for the application
-        const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 11:20:00";
-        const AUTHOR_NAME = "Aashish Dahal";
+        const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 11:45:00"; // Updated timestamp
 
         // **Quote auto change timer set to 10 seconds (10000 ms)**
         const QUOTE_PAUSE_TIME_MS = 10000;
@@ -290,12 +232,9 @@
         let englishDateCombinedEl;
         let nepaliDateEl;
         let timeDisplayEl;
-        let authorCreditEl;
         let socialIconsEl;
-        let mainContentEl; // Reference for the <main> tag
-        let headerSeparatorEl; // Reference for the separator line
-        let betaModalEl; // Reference for the modal wrapper
-        let modalContentEl; // Reference for the modal content
+        let mainContentEl;
+        let headerSeparatorEl;
 
         let quoteInterval = null; // Holds the ID for recursive setTimeout
         let currentTypingTimeout = null; // Tracks the active typewriter timeout
@@ -552,63 +491,6 @@
             setQuoteRotationState(!isQuoteRotationActive);
         }
 
-        // --- Author Slide Animation Logic ---
-
-        function slideAwayAuthor() {
-            const authorText = authorCreditEl.textContent;
-
-            // Check if the social icons are currently visible (implying the author text is slid away)
-            const isSocialVisible = socialIconsEl.classList.contains('opacity-100');
-
-            if (isSocialVisible) {
-                // Action: Restore the author text and hide icons
-                socialIconsEl.classList.remove('opacity-100', 'pointer-events-auto');
-                authorCreditEl.style.transform = '';
-                authorCreditEl.textContent = authorText;
-            } else {
-                // Action: Slide away the author text and show icons
-
-                // To create the sliding effect without absolute positioning headaches, 
-                // we'll briefly move the author text off-screen right before showing the icons in its place.
-                authorCreditEl.style.transform = 'translateX(100%)';
-                authorCreditEl.textContent = ''; // Clear text immediately after starting slide to avoid overlap
-
-                setTimeout(() => {
-                    authorCreditEl.style.transform = ''; // Reset transform for next click
-                    socialIconsEl.classList.add('opacity-100', 'pointer-events-auto');
-                }, 400); // Shorter duration to avoid flicker
-            }
-        }
-
-        // --- Modal Logic ---
-
-        /**
-         * Shows the Beta Warning Modal with animation.
-         */
-        function showBetaModal() {
-            betaModalEl.classList.remove('opacity-0', 'pointer-events-none');
-            modalContentEl.classList.remove('scale-90');
-            modalContentEl.classList.add('scale-100');
-
-            // Prevent body scrolling
-            document.body.classList.add('overflow-hidden');
-        }
-
-        /**
-         * Hides the Beta Warning Modal with animation.
-         */
-        function hideBetaModal() {
-            modalContentEl.classList.remove('scale-100');
-            modalContentEl.classList.add('scale-90');
-
-            // Delay hiding the modal wrapper slightly to allow the transition
-            setTimeout(() => {
-                betaModalEl.classList.add('opacity-0', 'pointer-events-none');
-                document.body.classList.remove('overflow-hidden');
-            }, 300); // Duration matches CSS transition
-        }
-
-
         // --- Initialization ---
 
         function initializeApp() {
@@ -620,28 +502,15 @@
             englishDateCombinedEl = document.getElementById('english-date-combined');
             nepaliDateEl = document.getElementById('nepali-date');
             timeDisplayEl = document.getElementById('time-display');
-            authorCreditEl = document.getElementById('author-credit');
             socialIconsEl = document.getElementById('social-icons');
             mainContentEl = document.getElementById('main-content');
             headerSeparatorEl = document.getElementById('header-separator');
-            betaModalEl = document.getElementById('beta-modal');
-            modalContentEl = document.getElementById('modal-content');
 
-
-            authorCreditEl.textContent = AUTHOR_NAME;
-
-            // Set the initial greeting text
+            // Set initial greeting
             greetingTextEl.textContent = getGreeting();
 
             // Start the clock and date intervals, includes retry logic for Nepali Date
             startClockAndDates();
-
-            // Add event listener to close modal if user clicks outside of the content area
-            betaModalEl.addEventListener('click', (e) => {
-                if (e.target === betaModalEl) {
-                    hideBetaModal();
-                }
-            });
 
             // Log the update time to the console
             logLastUpdated();
@@ -681,10 +550,7 @@
         // Expose functions globally for HTML onclick
         window.toggleQuoteRotation = toggleQuoteRotation;
         window.setQuoteRotationState = setQuoteRotationState;
-        window.slideAwayAuthor = slideAwayAuthor;
         window.displayNextQuote = displayNextQuote;
-        window.showBetaModal = showBetaModal; // Exposed new function
-        window.hideBetaModal = hideBetaModal; // Exposed new function
     </script>
 </body>
 
