@@ -8,14 +8,14 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Load Dancing Script, Inter, and Tangerine fonts from Google Fonts -->
+    <!-- Load Dancing Script (for Author), Inter (for general text), and Tangerine (for Quote) fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Inter:wght@400;700&family=Tangerine:wght@400;700&display=swap"
         rel="stylesheet">
 
-    <!-- Load Nepali Date Converter Library -->
+    <!-- Load Nepali Date Converter Library (v3.3.1 which typically exposes 'NepaliDateConverter' or 'NepaliDate') -->
     <script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.3.1/dist/nepali-date-converter.umd.js">
     </script>
 
@@ -28,36 +28,86 @@
         }
 
         /* Custom style applied specifically to the Greeting Text */
-        #greeting-text,
-        #author-text {
+        #greeting-text {
             font-family: 'Dancing Script', cursive;
             transition: all 0.7s ease-out;
+            cursor: pointer;
         }
 
         /* Custom style applied specifically to the Quote Text */
         #quote-text {
             font-family: 'Tangerine', cursive;
             transition: all 0.7s ease-out;
+            /* Ensure the typewriter effect cursor blinks */
+            border-right: 0.15em solid transparent;
         }
 
-        /* Class for sliding the author text away */
-        .slide-away {
-            transform: translateX(100vw);
+        /* Custom style applied specifically to the Author Text */
+        #author-credit {
+            font-family: 'Dancing Script', cursive;
+            transition: all 0.7s ease-out;
+            /* Text Color Animation Styles */
+            background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC04, #34A853, #4285F4);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: waveColorShift 8s linear infinite;
+            cursor: pointer;
+        }
+
+        @keyframes waveColorShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 400% 50%;
+            }
+        }
+
+        /* Class for hiding/fading elements when shrinking */
+        .shrunk {
             opacity: 0;
+            transform: translateY(-50px);
+            transition: all 0.5s ease-in;
         }
 
-        /* Custom scrollbar styling (optional, for aesthetics) */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Positioning for elements when the card is active */
+        #time-display.active-state {
+            font-size: 2.5rem;
+            /* Smaller time display */
+            position: absolute;
+            top: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 1s ease-in-out;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #2D2C31;
+        #nepali-date.active-state {
+            position: absolute;
+            top: 6rem;
+            /* Position below the small time */
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 1s ease-in-out;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #6C5CE7;
-            border-radius: 10px;
+        /* The combined English date element also moves/shrinks */
+        #english-date-combined.active-state {
+            position: absolute;
+            top: -2rem;
+            /* Hide it entirely off screen */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: all 1s ease-in-out;
+        }
+
+        #quote-container.active-state {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -69,48 +119,69 @@
         class="bg-[#2D2C31] p-8 md:p-12 lg:p-16 rounded-3xl shadow-2xl w-full max-w-4xl space-y-8 relative overflow-hidden transform transition duration-500 hover:shadow-[0_0_50px_rgba(108,92,231,0.5)]">
 
         <!-- Header: Dynamic Date and Time -->
-        <header class="text-center space-y-2">
-            <!-- English Date and Time -->
-            <p id="english-date" class="text-lg md:text-xl text-yellow-300 font-semibold"></p>
-            <p id="time-display" class="text-4xl md:text-6xl font-extrabold tracking-wider text-purple-400"></p>
+        <header id="header-content" class="text-center space-y-2 transition-all duration-700">
+            <!-- Combined English Date: Eg: Friday, Nov 28, 2025 -->
+            <p id="english-date-combined"
+                class="text-lg md:text-xl text-yellow-300 font-semibold transition-all duration-700">
+                Loading English Date...
+            </p>
+
+            <!-- Time Display -->
+            <p id="time-display"
+                class="text-4xl md:text-6xl font-extrabold tracking-wider text-purple-400 transition-all duration-700">
+                Loading...
+            </p>
+
             <!-- Nepali Date -->
-            <p id="nepali-date" class="text-md md:text-lg text-yellow-500"></p>
+            <p id="nepali-date" class="text-md md:text-lg text-yellow-500 transition-all duration-700">
+                Loading Nepali Date...
+            </p>
         </header>
 
         <!-- Dynamic Greeting and Quote Section -->
         <main class="text-center pt-6 pb-6 border-t border-b border-gray-700">
-            <!-- Greeting -->
-            <h1 id="greeting-text" class="text-4xl md:text-7xl font-bold text-white mb-4 transition-all">
+            <!-- Greeting (Clickable to start quote rotation) -->
+            <h1 id="greeting-text" onclick="animateGreetingAndTime(true)"
+                class="text-4xl md:text-7xl font-bold text-white mb-4 transition-all">
                 Loading...
             </h1>
-            <!-- Quote -->
-            <blockquote class="italic text-gray-400 mt-6">
-                <p id="quote-text" class="text-2xl md:text-4xl leading-snug">
-                    "A dream is a wish your heart makes."
-                </p>
-                <cite id="author-text" class="block text-lg md:text-xl mt-4 text-purple-300 transition-all">
-                    — Walt Disney
-                </cite>
-            </blockquote>
+
+            <!-- Quote Container - Hidden/Scaled down initially -->
+            <div id="quote-container"
+                class="opacity-0 scale-90 pointer-events-none transition-all duration-700 mt-6 pt-6 border-t border-gray-700">
+                <blockquote class="italic text-gray-400">
+                    <p id="quote-text" class="text-2xl md:text-4xl leading-snug">
+                        "Click the greeting above to start the inspiration."
+                    </p>
+                    <cite id="quote-author" class="block text-lg md:text-xl mt-4 text-purple-300 transition-all">
+                        — Ready
+                    </cite>
+                </blockquote>
+            </div>
         </main>
 
         <!-- Controls -->
         <footer class="flex justify-center space-x-4">
-            <!-- Button to generate new content -->
-            <button onclick="animateGreetingAndTime()"
+            <!-- Button to generate new quote (Shuffle Icon) -->
+            <button id="newQuoteBtn" onclick="displayNextQuote()"
                 class="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl 
                        transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50">
+                <!-- Icon: Arrow path that loops/shuffles -->
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.75 9.815 9.815 0 00.322-1.672M8.79 3.092L4.992 6.89m0 0h4.992m-4.993 0l3.181-3.183a8.25 8.25 0 0113.803 3.75 9.815 9.815 0 01.322 1.672" />
+                        d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M20.25 7.5l-.664 1.839C19.7 10.15 17.5 12 15 12h-5m0 0l6.75 6.75M10 12l-1.076-2.981C8.75 8.169 6.5 6 4 6h-3.5" />
                 </svg>
-                <span>New Greeting</span>
+                <span>New Quote</span>
             </button>
-            <!-- Button to toggle the info modal -->
+
+            <!-- Button to toggle the info modal (Info/Sparkle Icon) -->
             <button onclick="toggleModal(true)"
                 class="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl 
                        transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
+                <!-- Icon: Information Circle -->
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -119,6 +190,44 @@
                 <span>Info</span>
             </button>
         </footer>
+    </div>
+
+    <!-- Custom Text (Bottom Right) -->
+    <p id="author-credit" class="fixed bottom-6 right-4 text-3xl font-semibold z-10" onclick="slideAwayAuthor()">
+        Loading Author...
+    </p>
+
+    <!-- Social Media Icons Container - Initially Hidden -->
+    <div id="social-icons"
+        class="fixed bottom-6 right-4 flex space-x-4 opacity-0 pointer-events-none z-20 transition-all duration-500">
+        <!-- Instagram Icon --><a href="https://www.instagram.com/_aashish_dahal/" target="_blank" title="Instagram">
+            <svg class="w-7 h-7 hover:text-pink-500 transition-colors" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.5" y1="6.5" y2="6.5" />
+            </svg>
+        </a>
+
+        <!-- Facebook Icon --><a href="https://www.facebook.com/ashish.dahal.555186" target="_blank" title="Facebook">
+            <svg class="w-7 h-7 hover:text-blue-600 transition-colors" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+            </svg>
+        </a>
+
+        <!-- WhatsApp Icon --><a href="https://wa.me/9779865102989" target="_blank" title="WhatsApp">
+            <svg class="w-7 h-7 hover:text-green-500 transition-colors" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M12 2C6.477 2 2 6.477 2 12c0 1.974.551 3.829 1.551 5.433L2.5 21.5l4.133-1.051C8.171 21.449 10.026 22 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
+                <path d="M12 16c-1.105 0-2-.895-2-2v-4c0-1.105.895-2 2-2h4c1.105 0 2 .895 2 2v4c0 1.105-.895 2-2 2h-4z"
+                    fill="currentColor" stroke="none" />
+            </svg>
+        </a>
     </div>
 
     <!-- Modal for Introduction/Information (Hidden by default) -->
@@ -133,30 +242,53 @@
 
     <!-- JavaScript Logic -->
     <script>
-        // --- Configuration ---
+        // --- Configuration & Constants ---
 
         // The date/time of the last known update for the application
-        const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 10:26:00";
+        const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 10:35:00";
+        const AUTHOR_NAME = "Aashish Dahal";
 
         // Fixed set of inspirational quotes and authors
         const QUOTES = [
-            { quote: "The best way to predict the future is to create it.", author: "Peter Drucker" },
-            { quote: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein" },
-            { quote: "The mind is everything. What you think you become.", author: "Buddha" },
-            { quote: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
-            { quote: "Happiness is not something readymade. It comes from your own actions.", author: "Dalai Lama" },
-            { quote: "The purpose of our lives is to be happy.", author: "Dalai Lama" },
+            { content: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
+            { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { content: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { content: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs" },
+            { content: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+            { content: "Be yourself; everyone else is already taken.", author: "Oscar Wilde" },
+            { content: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+            { content: "It always seems impossible until it’s done.", author: "Nelson Mandela" },
+            { content: "Don’t watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+            { content: "You miss 100% of the shots you don’t take.", author: "Wayne Gretzky" },
+            { content: "Act as if what you do makes a difference. It does.", author: "William James" },
+            { content: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+            { content: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau" },
+            { content: "Happiness is not something ready made. It comes from your own actions.", author: "Dalai Lama" },
+            { content: "Dream big and dare to fail.", author: "Norman Vaughan" }
         ];
 
-        // Global variables for elements
+        // Pause time after typing completes (5 seconds)
+        const QUOTE_PAUSE_TIME_MS = 5000;
+
+        // Global element references
         let greetingTextEl;
+        let quoteContainerEl;
         let quoteTextEl;
-        let authorTextEl;
-        let englishDateEl;
+        let quoteAuthorEl;
+        let englishDateCombinedEl; // Renamed element
         let nepaliDateEl;
         let timeDisplayEl;
         let introModalEl;
         let modalContentWrapperEl;
+        let authorCreditEl;
+        let socialIconsEl;
+        let newQuoteBtnEl;
+
+
+        let quoteInterval = null; // Holds the ID for recursive setTimeout
+        let currentTypingTimeout = null; // Tracks the active typewriter timeout
+        let isQuoteRotationActive = false; // State flag
 
         // --- Utility Functions ---
 
@@ -166,102 +298,255 @@
          */
         function getGreeting() {
             const hour = new Date().getHours();
-            if (hour < 5) return "Good Night!";
-            if (hour < 12) return "Good Morning!";
-            if (hour < 18) return "Good Afternoon!";
-            return "Good Evening!";
+            if (hour < 5) return "Good Night! 🌃";
+            if (hour < 12) return "Good Morning! 🌅";
+            if (hour < 18) return "Good Afternoon! ☀️";
+            return "Good Evening! 🌙";
         }
 
         /**
          * Selects a random quote from the QUOTES array.
-         * @returns {object} A quote object with 'quote' and 'author' properties.
+         * @returns {object} A quote object with 'content' and 'author' properties.
          */
         function getRandomQuote() {
             const randomIndex = Math.floor(Math.random() * QUOTES.length);
             return QUOTES[randomIndex];
         }
 
-        // --- Core Update Functions ---
+        // --- Date & Time Functions ---
 
         /**
-         * Updates the date and time displays (English and Nepali).
+         * Function to update time, called every second.
          */
-        function updateDateAndTime() {
+        function updateTime() {
             const now = new Date();
-
-            // 1. English Date & Time
-            const dateOptions = {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-            };
-            englishDateEl.textContent = now.toLocaleDateString('en-US', dateOptions);
-
             const timeOptions = {
                 hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
             };
             timeDisplayEl.textContent = now.toLocaleTimeString('en-US', timeOptions);
+        }
 
-            // 2. Nepali Date (Requires NepaliDateConverter library)
-            if (typeof NepaliDateConverter !== 'undefined') {
+        /**
+         * Function to update dates (English and Nepali).
+         * @returns {boolean} True if Nepali date was successfully calculated, false otherwise.
+         */
+        function updateDates() {
+            const now = new Date();
+
+            // 1. English Date (Combined: Eg: Friday, Nov 28, 2025)
+            const combinedEnglishOptions = {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            };
+            englishDateCombinedEl.textContent = now.toLocaleDateString('en-US', combinedEnglishOptions);
+
+            // 2. Nepali Date (FIXED LOGIC with check for both potential global names)
+            const DateConstructor = typeof NepaliDateConverter !== 'undefined' ? NepaliDateConverter : (typeof NepaliDate !== 'undefined' ? NepaliDate : null);
+
+            if (DateConstructor) {
                 try {
-                    const nepaliDate = new NepaliDateConverter(now);
-                    const nepaliDateStr = `${nepaliDate.getYear()} / ${nepaliDate.getMonthName()} / ${nepaliDate.getDate()} - ${nepaliDate.getDayName()}`;
-                    nepaliDateEl.textContent = `Nepali Date: ${nepaliDateStr}`;
+                    // Use the identified constructor
+                    const nepaliDateConverter = new DateConstructor(now);
+                    // Format the date string
+                    const nepaliDateStr = `${nepaliDateConverter.format('MMMM D, YYYY')} B.S.`;
+                    nepaliDateEl.textContent = nepaliDateStr;
+                    nepaliDateEl.classList.remove('text-red-500'); // Remove error style if successful
+                    return true; // Success
                 } catch (e) {
+                    // This error indicates the converter loaded but failed to process the date object.
                     console.error("Error converting to Nepali date:", e);
-                    nepaliDateEl.textContent = "Nepali Date: Error";
+                    nepaliDateEl.textContent = "Nepali Date: Conversion Error.";
+                    nepaliDateEl.classList.add('text-red-500');
+                    return false;
                 }
             } else {
-                nepaliDateEl.textContent = "Nepali Date: Library Not Loaded";
+                // This indicates the script hasn't fully loaded or defined its global object yet.
+                nepaliDateEl.textContent = "Nepali Date: Loading...";
+                nepaliDateEl.classList.add('text-yellow-500');
+                return false;
             }
         }
 
         /**
-         * Animates the display of a new greeting and quote.
+         * Waits for the Nepali Date Library to load before setting up the interval.
          */
-        function animateGreetingAndTime() {
-            // 1. Apply slide-away transition to author
-            slideAwayAuthor();
+        function initializeDatesWithRetry() {
+            const success = updateDates();
 
-            // 2. Animate the greeting and quote change
-            greetingTextEl.classList.add('opacity-0', 'scale-95');
-            quoteTextEl.classList.add('opacity-0', 'scale-95');
-
-            // Wait for transition to complete, then update content
-            setTimeout(() => {
-                // Update Greeting
-                greetingTextEl.textContent = getGreeting();
-
-                // Update Quote
-                const { quote, author } = getRandomQuote();
-                quoteTextEl.textContent = `"${quote}"`;
-
-                // Update Author
-                authorTextEl.textContent = `— ${author}`;
-                authorTextEl.classList.remove('slide-away'); // Bring author back in
-
-                // Bring elements back
-                greetingTextEl.classList.remove('opacity-0', 'scale-95');
-                quoteTextEl.classList.remove('opacity-0', 'scale-95');
-            }, 500); // Must match CSS transition duration
+            if (success) {
+                // Now that the date is loaded, set the interval for subsequent updates every minute
+                setInterval(updateDates, 60000);
+                console.log("Nepali Date initialized successfully.");
+            } else {
+                // If unsuccessful (likely because the library hasn't loaded), retry after 200ms
+                setTimeout(initializeDatesWithRetry, 200);
+            }
         }
 
         /**
-         * Slides the author text element away (pre-transition for new quote).
-         */
-        function slideAwayAuthor() {
-            authorTextEl.classList.add('slide-away');
-        }
-
-        /**
-         * Starts the clock and date interval updates.
+         * Starts the clock and date intervals.
          */
         function startClockAndDates() {
-            // Initial run to populate fields immediately
-            updateDateAndTime();
-            animateGreetingAndTime();
+            // 1. Time updates (always works)
+            updateTime();
+            setInterval(updateTime, 1000);
 
-            // Set interval for continuous time updates
-            setInterval(updateDateAndTime, 1000); // Update every second
+            // 2. Date updates (uses retry logic)
+            initializeDatesWithRetry();
+        }
+
+        // --- Typewriter and Quote Rotation Logic ---
+
+        /**
+         * Simulates a typewriter effect by typing text character by character.
+         */
+        function typeWriter(text, element, speed = 40, callback = () => { }) {
+            let i = 0;
+            element.textContent = ''; // Clear existing text
+
+            // Clear any previous typewriter timeout before starting a new one
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+            }
+
+            // Start the cursor blinking (by changing border color)
+            element.style.borderColor = '#E6E1E5';
+
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    currentTypingTimeout = setTimeout(type, speed); // Store the ID
+                } else {
+                    currentTypingTimeout = null; // Clear ID when done
+                    element.style.borderColor = 'transparent'; // Stop cursor blinking
+                    callback();
+                }
+            }
+            type();
+        }
+
+        /**
+         * Displays the next quote and schedules the subsequent one recursively.
+         */
+        function displayNextQuote() {
+            // Reset author visibility and content
+            quoteAuthorEl.style.opacity = '0';
+            quoteAuthorEl.textContent = '';
+
+            // Clear any ongoing typing or pending quote interval
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+                currentTypingTimeout = null;
+            }
+            if (quoteInterval) {
+                clearTimeout(quoteInterval);
+                quoteInterval = null;
+            }
+
+            const quote = getRandomQuote();
+
+            // 1. Type out the quote content
+            typeWriter(`"${quote.content}"`, quoteTextEl, 40, () => {
+                // 2. Once quote is typed, set and fade in the author
+                quoteAuthorEl.textContent = `— ${quote.author}`;
+                quoteAuthorEl.style.transition = 'opacity 0.5s ease-in 0.5s';
+                quoteAuthorEl.style.opacity = '1';
+
+                // 3. Schedule the next quote after the pause time (5 seconds)
+                if (isQuoteRotationActive) {
+                    quoteInterval = setTimeout(displayNextQuote, QUOTE_PAUSE_TIME_MS);
+                }
+            });
+        }
+
+        /**
+         * Stops the quote rotation.
+         */
+        function stopQuoteRotation() {
+            isQuoteRotationActive = false;
+            // Clear the recursive timeout
+            if (quoteInterval) {
+                clearTimeout(quoteInterval);
+                quoteInterval = null;
+            }
+            // Clear the active typewriter timeout
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+                currentTypingTimeout = null;
+            }
+            // Clear text and author when stopping
+            quoteTextEl.textContent = 'Click the greeting above to start the inspiration.';
+            quoteAuthorEl.textContent = '— Ready';
+            quoteAuthorEl.style.opacity = '1'; // Keep "Ready" visible
+        }
+
+        /**
+         * Toggles the main card state (Expanded/Active).
+         * @param {boolean} shouldActivate True to activate the quote rotation, false to revert.
+         */
+        function animateGreetingAndTime(shouldActivate) {
+            isQuoteRotationActive = shouldActivate;
+
+            if (shouldActivate) {
+                // 1. Shrink/Move Header elements
+                englishDateCombinedEl.classList.add('active-state'); // Apply the combined state CSS
+
+                // 2. Move Time and Nepali Date to the top
+                timeDisplayEl.classList.add('active-state');
+                nepaliDateEl.classList.add('active-state');
+
+                // 3. Make Quote container visible and activate rotation
+                quoteContainerEl.classList.add('active-state');
+                newQuoteBtnEl.disabled = false;
+
+                // Delay quote start slightly
+                setTimeout(displayNextQuote, 700);
+
+            } else {
+                // 1. Restore Header elements
+                englishDateCombinedEl.classList.remove('active-state');
+
+                // 2. Restore Time and Nepali Date position
+                timeDisplayEl.classList.remove('active-state');
+                nepaliDateEl.classList.remove('active-state');
+
+                // 3. Hide Quote container and stop rotation
+                quoteContainerEl.classList.remove('active-state');
+                newQuoteBtnEl.disabled = true;
+
+                stopQuoteRotation();
+            }
+        }
+
+        // --- Author Slide Animation Logic ---
+
+        function slideAwayAuthor() {
+            const authorText = authorCreditEl.textContent;
+
+            // Check if the social icons are currently visible (implying the author text is slid away)
+            const isSocialVisible = socialIconsEl.classList.contains('opacity-100');
+
+            if (isSocialVisible) {
+                // Action: Restore the author text and hide icons
+                socialIconsEl.classList.remove('opacity-100', 'pointer-events-auto');
+                authorCreditEl.style.transform = '';
+                authorCreditEl.textContent = authorText;
+            } else {
+                // Action: Slide away the author text and show icons
+
+                // To create the sliding effect without absolute positioning headaches, 
+                // we'll briefly move the author text off-screen right before showing the icons in its place.
+                authorCreditEl.style.transform = 'translateX(100%)';
+                authorCreditEl.textContent = ''; // Clear text immediately after starting slide to avoid overlap
+
+                setTimeout(() => {
+                    authorCreditEl.style.transform = ''; // Reset transform for next click
+                    socialIconsEl.classList.add('opacity-100', 'pointer-events-auto');
+                }, 400); // Shorter duration to avoid flicker
+            }
         }
 
         // --- Modal/UI Functions ---
@@ -280,55 +565,55 @@
                 // Wait for the opacity transition to complete before hiding
                 setTimeout(() => introModalEl.classList.add('hidden'), 300);
             }
-            // If hiding, also remove the 'initial-show' class to prevent showing on reload
-            if (!show && localStorage.getItem('introModalShown') !== 'true') {
-                localStorage.setItem('introModalShown', 'true');
-            }
         }
 
         /**
-         * Initializes the modal content and displays it if it hasn't been shown before.
+         * Initializes the modal content and sets up the close button.
          */
         function initializeIntroModal() {
             // Get DOM elements
             greetingTextEl = document.getElementById('greeting-text');
+            quoteContainerEl = document.getElementById('quote-container');
             quoteTextEl = document.getElementById('quote-text');
-            authorTextEl = document.getElementById('author-text');
-            englishDateEl = document.getElementById('english-date');
+            quoteAuthorEl = document.getElementById('quote-author');
+            englishDateCombinedEl = document.getElementById('english-date-combined'); // Updated ref
             nepaliDateEl = document.getElementById('nepali-date');
             timeDisplayEl = document.getElementById('time-display');
             introModalEl = document.getElementById('introModal');
             modalContentWrapperEl = document.getElementById('modalContentWrapper');
+            authorCreditEl = document.getElementById('author-credit');
+            socialIconsEl = document.getElementById('social-icons');
+            newQuoteBtnEl = document.getElementById('newQuoteBtn');
 
-            // Define the modal content (Updated to remove specified text)
+            authorCreditEl.textContent = AUTHOR_NAME;
+
+            // Define the modal content
             const modalContent = `
-                <h3 class="text-2xl font-bold mb-3 text-yellow-300">Welcome to Greetings!</h3>
+                <h3 class="text-2xl font-bold mb-3 text-yellow-300">Welcome!</h3>
                 <p class="mb-6 text-gray-300">
-                    This single-file web application demonstrates various dynamic features.
+                    This single-file web application demonstrates various dynamic features, including real-time clock, date conversion, and rotating quotes.
+                </p>
+                <p class="mb-6 text-sm text-gray-400">
+                    <strong class="text-purple-300">Tip:</strong> Click the main greeting to switch between the clock view and the rotating quote view.
                 </p>
                 <button id="closeModalBtn" 
                         class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl 
                                 transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-yellow-500 focus:ring-opacity-50">
-                    Get Started
+                    Got It!
                 </button>
             `;
 
             // Inject content
             modalContentWrapperEl.innerHTML = modalContent;
 
-            // Check if the user has seen the modal before (using localStorage)
-            const hasModalBeenShown = localStorage.getItem('introModalShown') === 'true';
-
-            // Show modal on first visit only
-            if (!hasModalBeenShown) {
-                toggleModal(true);
-            }
-
-            // Attach event listener to the "Get Started" button
+            // Attach event listener to the "Got It!" button
             const closeModalBtn = document.getElementById('closeModalBtn');
             if (closeModalBtn) {
                 closeModalBtn.addEventListener('click', () => toggleModal(false));
             }
+
+            // Initial state for buttons
+            newQuoteBtnEl.disabled = true;
         }
 
         /**
@@ -363,10 +648,13 @@
         // --- Initialization ---
 
         window.onload = function () {
-            // Initialize and manage the one-time introductory modal
+            // Initialize elements and set up modal
             initializeIntroModal();
 
-            // Start the clock and date intervals
+            // Set the initial greeting text
+            greetingTextEl.textContent = getGreeting();
+
+            // Start the clock and date intervals, includes retry logic for Nepali Date
             startClockAndDates();
 
             // Log the update time to the console
@@ -377,6 +665,7 @@
         window.animateGreetingAndTime = animateGreetingAndTime;
         window.slideAwayAuthor = slideAwayAuthor;
         window.toggleModal = toggleModal;
+        window.displayNextQuote = displayNextQuote;
     </script>
 </body>
 
