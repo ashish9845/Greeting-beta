@@ -8,7 +8,7 @@
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Load Dancing Script (for Author), Inter (for general text), and Tangerine (for Quote) fonts -->
+    <!-- Load Dancing Script, Inter, and Tangerine fonts from Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -66,14 +66,15 @@
             }
         }
 
-        /* Class for hiding/fading elements when shrinking */
+        /* Class for hiding/fading elements when shrinking (Used for English date and Nepali date) */
         .shrunk {
-            opacity: 0;
-            transform: translateY(-50px);
+            opacity: 0 !important;
+            transform: translateY(-50px) !important;
             transition: all 0.5s ease-in;
+            pointer-events: none;
         }
 
-        /* Positioning for elements when the card is active */
+        /* Positioning for elements when the card is active (Quote mode) */
         #time-display.active-state {
             font-size: 2.5rem;
             /* Smaller time display */
@@ -84,42 +85,66 @@
             transition: all 1s ease-in-out;
         }
 
-        #nepali-date.active-state {
-            position: absolute;
-            top: 6rem;
-            /* Position below the small time */
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 1s ease-in-out;
-        }
-
-        /* The combined English date element also moves/shrinks */
+        /* New state for combined English date: hide it */
         #english-date-combined.active-state {
-            position: absolute;
-            top: -2rem;
-            /* Hide it entirely off screen */
-            left: 50%;
-            transform: translateX(-50%);
             opacity: 0;
-            transition: all 1s ease-in-out;
+            transform: translateY(-30px);
+            pointer-events: none;
         }
 
         #quote-container.active-state {
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
+            /* Ensure the quote container adds spacing and border when active */
+            padding-top: 1.5rem;
+            /* pt-6 equivalent */
+            padding-bottom: 1.5rem;
+            /* pb-6 equivalent */
+            /* The border-top here is now controlled by the JS in active mode */
+        }
+
+        /* Apply border and padding to main content only when NOT active */
+        #main-content {
+            transition: all 0.7s ease-out;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+
+        #main-content:not(.active-quote-mode) {
+            /* Border between time and greeting is handled by #header-separator's visibility now */
+            border-top: none;
+            border-bottom: none;
+        }
+
+        /* When active, remove main content borders */
+        #main-content.active-quote-mode {
+            border-top: none;
+            border-bottom: none;
+        }
+
+        /* The header needs a bottom margin/padding to account for the border it no longer has */
+        #header-content:not(.active-state) {
+            padding-bottom: 1.5rem;
         }
     </style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
+    <!-- BETA Indicator (Top Left) -->
+    <div
+        class="fixed top-4 left-4 text-sm font-extrabold text-red-400 bg-red-900/20 px-2 py-1 rounded-lg tracking-widest border border-red-500/30 shadow-md z-30">
+        BETA
+    </div>
+
     <!-- Main Content Card -->
     <div id="main-card"
         class="bg-[#2D2C31] p-8 md:p-12 lg:p-16 rounded-3xl shadow-2xl w-full max-w-4xl space-y-8 relative overflow-hidden transform transition duration-500 hover:shadow-[0_0_50px_rgba(108,92,231,0.5)]">
 
         <!-- Header: Dynamic Date and Time -->
-        <header id="header-content" class="text-center space-y-2 transition-all duration-700">
+        <!-- Added pt-0 mt-0 to header to control spacing relative to the card top -->
+        <header id="header-content" class="text-center space-y-2 transition-all duration-700 pt-0 mt-0">
             <!-- Combined English Date: Eg: Friday, Nov 28, 2025 -->
             <p id="english-date-combined"
                 class="text-lg md:text-xl text-yellow-300 font-semibold transition-all duration-700">
@@ -136,19 +161,23 @@
             <p id="nepali-date" class="text-md md:text-lg text-yellow-500 transition-all duration-700">
                 Loading Nepali Date...
             </p>
+
+            <!-- Separator Line between time block and greeting block -->
+            <!-- Starts hidden (opacity-0) -->
+            <div id="header-separator"
+                class="h-px bg-gray-700 w-full mx-auto mt-6 mb-6 transition-opacity duration-500 opacity-0"></div>
         </header>
 
         <!-- Dynamic Greeting and Quote Section -->
-        <main class="text-center pt-6 pb-6 border-t border-b border-gray-700">
-            <!-- Greeting (Clickable to start quote rotation) -->
-            <h1 id="greeting-text" onclick="animateGreetingAndTime(true)"
+        <main id="main-content" class="text-center transition-all duration-700">
+            <!-- Greeting (Clickable to toggle quote rotation) -->
+            <h1 id="greeting-text" onclick="toggleQuoteRotation()"
                 class="text-4xl md:text-7xl font-bold text-white mb-4 transition-all">
                 Loading...
             </h1>
 
             <!-- Quote Container - Hidden/Scaled down initially -->
-            <div id="quote-container"
-                class="opacity-0 scale-90 pointer-events-none transition-all duration-700 mt-6 pt-6 border-t border-gray-700">
+            <div id="quote-container" class="opacity-0 scale-90 pointer-events-none transition-all duration-700 mt-6">
                 <blockquote class="italic text-gray-400">
                     <p id="quote-text" class="text-2xl md:text-4xl leading-snug">
                         "Click the greeting above to start the inspiration."
@@ -160,36 +189,7 @@
             </div>
         </main>
 
-        <!-- Controls -->
-        <footer class="flex justify-center space-x-4">
-            <!-- Button to generate new quote (Shuffle Icon) -->
-            <button id="newQuoteBtn" onclick="displayNextQuote()"
-                class="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-xl 
-                       transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50">
-                <!-- Icon: Arrow path that loops/shuffles -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75" />
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M20.25 7.5l-.664 1.839C19.7 10.15 17.5 12 15 12h-5m0 0l6.75 6.75M10 12l-1.076-2.981C8.75 8.169 6.5 6 4 6h-3.5" />
-                </svg>
-                <span>New Quote</span>
-            </button>
-
-            <!-- Button to toggle the info modal (Info/Sparkle Icon) -->
-            <button onclick="toggleModal(true)"
-                class="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-xl 
-                       transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.05] focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
-                <!-- Icon: Information Circle -->
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.782 1.341a.57.57 0 00.916.634l1.39-1.39a.57.57 0 01.634.916l1.34 1.34a.75.75 0 01.852 1.063l-.02.041V21a2.25 2.25 0 01-2.25 2.25h-2.25A2.25 2.25 0 0112 21v-8.25a.75.75 0 01.75-.75h.75zM12 3a9 9 0 100 18A9 9 0 0012 3zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3z" />
-                </svg>
-                <span>Info</span>
-            </button>
-        </footer>
+        <!-- BUTTONS REMOVED -->
     </div>
 
     <!-- Custom Text (Bottom Right) -->
@@ -230,16 +230,6 @@
         </a>
     </div>
 
-    <!-- Modal for Introduction/Information (Hidden by default) -->
-    <div id="introModal"
-        class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300 opacity-0"
-        onclick="toggleModal(false)">
-        <div id="modalContentWrapper" class="bg-[#2D2C31] p-8 rounded-3xl shadow-xl w-full max-w-sm"
-            onclick="event.stopPropagation()">
-            <!-- Modal content will be injected here by JavaScript -->
-        </div>
-    </div>
-
     <!-- JavaScript Logic -->
     <script>
         // --- Configuration & Constants ---
@@ -247,6 +237,9 @@
         // The date/time of the last known update for the application
         const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 10:35:00";
         const AUTHOR_NAME = "Aashish Dahal";
+
+        // **UPDATED: Quote auto change timer set to 6.5 seconds (6500 ms)**
+        const QUOTE_PAUSE_TIME_MS = 6500;
 
         // Fixed set of inspirational quotes and authors
         const QUOTES = [
@@ -268,23 +261,18 @@
             { content: "Dream big and dare to fail.", author: "Norman Vaughan" }
         ];
 
-        // Pause time after typing completes (5 seconds)
-        const QUOTE_PAUSE_TIME_MS = 5000;
-
         // Global element references
         let greetingTextEl;
         let quoteContainerEl;
         let quoteTextEl;
         let quoteAuthorEl;
-        let englishDateCombinedEl; // Renamed element
+        let englishDateCombinedEl;
         let nepaliDateEl;
         let timeDisplayEl;
-        let introModalEl;
-        let modalContentWrapperEl;
         let authorCreditEl;
         let socialIconsEl;
-        let newQuoteBtnEl;
-
+        let mainContentEl; // Reference for the <main> tag
+        let headerSeparatorEl; // Reference for the new separator line
 
         let quoteInterval = null; // Holds the ID for recursive setTimeout
         let currentTypingTimeout = null; // Tracks the active typewriter timeout
@@ -305,12 +293,19 @@
         }
 
         /**
-         * Selects a random quote from the QUOTES array.
+         * Selects a random quote from the QUOTES array, ensuring it's not the same as the current one.
          * @returns {object} A quote object with 'content' and 'author' properties.
          */
         function getRandomQuote() {
-            const randomIndex = Math.floor(Math.random() * QUOTES.length);
-            return QUOTES[randomIndex];
+            // Filter out the current quote to ensure a different one is selected next
+            const currentQuoteText = quoteTextEl.textContent.replace(/"/g, '');
+            const availableQuotes = QUOTES.filter(q => q.content !== currentQuoteText);
+
+            // If filtering leaves no options (shouldn't happen with a large list) fall back to full list
+            const selectionPool = availableQuotes.length > 0 ? availableQuotes : QUOTES;
+
+            const randomIndex = Math.floor(Math.random() * selectionPool.length);
+            return selectionPool[randomIndex];
         }
 
         // --- Date & Time Functions ---
@@ -455,7 +450,7 @@
                 quoteAuthorEl.style.transition = 'opacity 0.5s ease-in 0.5s';
                 quoteAuthorEl.style.opacity = '1';
 
-                // 3. Schedule the next quote after the pause time (5 seconds)
+                // 3. Schedule the next quote after the pause time (6.5 seconds)
                 if (isQuoteRotationActive) {
                     quoteInterval = setTimeout(displayNextQuote, QUOTE_PAUSE_TIME_MS);
                 }
@@ -484,23 +479,26 @@
         }
 
         /**
-         * Toggles the main card state (Expanded/Active).
+         * Sets the main card state (Expanded/Active or Collapsed/Inactive).
          * @param {boolean} shouldActivate True to activate the quote rotation, false to revert.
          */
-        function animateGreetingAndTime(shouldActivate) {
+        function setQuoteRotationState(shouldActivate) {
             isQuoteRotationActive = shouldActivate;
 
             if (shouldActivate) {
-                // 1. Shrink/Move Header elements
-                englishDateCombinedEl.classList.add('active-state'); // Apply the combined state CSS
+                // 1. Shrink/Move Header elements and hide dates
+                englishDateCombinedEl.classList.add('active-state'); // Hide English date
+                nepaliDateEl.classList.add('shrunk'); // Hide Nepali date
 
-                // 2. Move Time and Nepali Date to the top
+                // SHOW the separator when quote mode is active
+                headerSeparatorEl.classList.remove('opacity-0');
+
+                // 2. Remove default border/padding from main content and move Time to the top
+                mainContentEl.classList.add('active-quote-mode'); // Use a custom class for active mode
                 timeDisplayEl.classList.add('active-state');
-                nepaliDateEl.classList.add('active-state');
 
                 // 3. Make Quote container visible and activate rotation
                 quoteContainerEl.classList.add('active-state');
-                newQuoteBtnEl.disabled = false;
 
                 // Delay quote start slightly
                 setTimeout(displayNextQuote, 700);
@@ -508,17 +506,27 @@
             } else {
                 // 1. Restore Header elements
                 englishDateCombinedEl.classList.remove('active-state');
+                nepaliDateEl.classList.remove('shrunk');
 
-                // 2. Restore Time and Nepali Date position
+                // HIDE the separator when quote mode is inactive
+                headerSeparatorEl.classList.add('opacity-0');
+
+                // 2. Restore default border/padding and Time position
+                mainContentEl.classList.remove('active-quote-mode');
                 timeDisplayEl.classList.remove('active-state');
-                nepaliDateEl.classList.remove('active-state');
 
                 // 3. Hide Quote container and stop rotation
                 quoteContainerEl.classList.remove('active-state');
-                newQuoteBtnEl.disabled = true;
 
                 stopQuoteRotation();
             }
+        }
+
+        /**
+         * Toggles the quote rotation state on greeting click.
+         */
+        function toggleQuoteRotation() {
+            setQuoteRotationState(!isQuoteRotationActive);
         }
 
         // --- Author Slide Animation Logic ---
@@ -549,71 +557,32 @@
             }
         }
 
-        // --- Modal/UI Functions ---
+        // --- Initialization ---
 
-        /**
-         * Toggles the visibility of the introductory modal.
-         * @param {boolean} show If true, shows the modal; if false, hides it.
-         */
-        function toggleModal(show) {
-            if (show) {
-                introModalEl.classList.remove('hidden');
-                // Use a timeout to trigger CSS transition for opacity
-                setTimeout(() => introModalEl.classList.add('opacity-100'), 10);
-            } else {
-                introModalEl.classList.remove('opacity-100');
-                // Wait for the opacity transition to complete before hiding
-                setTimeout(() => introModalEl.classList.add('hidden'), 300);
-            }
-        }
-
-        /**
-         * Initializes the modal content and sets up the close button.
-         */
-        function initializeIntroModal() {
+        function initializeApp() {
             // Get DOM elements
             greetingTextEl = document.getElementById('greeting-text');
             quoteContainerEl = document.getElementById('quote-container');
             quoteTextEl = document.getElementById('quote-text');
             quoteAuthorEl = document.getElementById('quote-author');
-            englishDateCombinedEl = document.getElementById('english-date-combined'); // Updated ref
+            englishDateCombinedEl = document.getElementById('english-date-combined');
             nepaliDateEl = document.getElementById('nepali-date');
             timeDisplayEl = document.getElementById('time-display');
-            introModalEl = document.getElementById('introModal');
-            modalContentWrapperEl = document.getElementById('modalContentWrapper');
             authorCreditEl = document.getElementById('author-credit');
             socialIconsEl = document.getElementById('social-icons');
-            newQuoteBtnEl = document.getElementById('newQuoteBtn');
+            mainContentEl = document.getElementById('main-content');
+            headerSeparatorEl = document.getElementById('header-separator');
 
             authorCreditEl.textContent = AUTHOR_NAME;
 
-            // Define the modal content
-            const modalContent = `
-                <h3 class="text-2xl font-bold mb-3 text-yellow-300">Welcome!</h3>
-                <p class="mb-6 text-gray-300">
-                    This single-file web application demonstrates various dynamic features, including real-time clock, date conversion, and rotating quotes.
-                </p>
-                <p class="mb-6 text-sm text-gray-400">
-                    <strong class="text-purple-300">Tip:</strong> Click the main greeting to switch between the clock view and the rotating quote view.
-                </p>
-                <button id="closeModalBtn" 
-                        class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl 
-                                transition duration-300 ease-in-out shadow-lg transform hover:scale-[1.01] focus:outline-none focus:ring-4 focus:ring-yellow-500 focus:ring-opacity-50">
-                    Got It!
-                </button>
-            `;
+            // Set the initial greeting text
+            greetingTextEl.textContent = getGreeting();
 
-            // Inject content
-            modalContentWrapperEl.innerHTML = modalContent;
+            // Start the clock and date intervals, includes retry logic for Nepali Date
+            startClockAndDates();
 
-            // Attach event listener to the "Got It!" button
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', () => toggleModal(false));
-            }
-
-            // Initial state for buttons
-            newQuoteBtnEl.disabled = true;
+            // Log the update time to the console
+            logLastUpdated();
         }
 
         /**
@@ -645,26 +614,12 @@
             console.log(`Page Last Updated: ${datePart}-${timePart}`);
         }
 
-        // --- Initialization ---
-
-        window.onload = function () {
-            // Initialize elements and set up modal
-            initializeIntroModal();
-
-            // Set the initial greeting text
-            greetingTextEl.textContent = getGreeting();
-
-            // Start the clock and date intervals, includes retry logic for Nepali Date
-            startClockAndDates();
-
-            // Log the update time to the console
-            logLastUpdated();
-        };
+        window.onload = initializeApp;
 
         // Expose functions globally for HTML onclick
-        window.animateGreetingAndTime = animateGreetingAndTime;
+        window.toggleQuoteRotation = toggleQuoteRotation; // New toggle function
+        window.setQuoteRotationState = setQuoteRotationState; // Renamed function
         window.slideAwayAuthor = slideAwayAuthor;
-        window.toggleModal = toggleModal;
         window.displayNextQuote = displayNextQuote;
     </script>
 </body>
