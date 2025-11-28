@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greetings</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Load Dancing Script, Inter, and Tangerine fonts from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Inter:wght@400;700&family=Tangerine:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Load Nepali Date Converter Library -->
+    <script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.3.1/dist/nepali-date-converter.umd.js">
+    </script>
+
+    <style>
+        /* Apply custom background, text color, and Inter font for general text */
+        body {
+            background-color: #1C1B1F;
+            color: #E6E1E5;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom style applied specifically to the greeting H1 */
+        #greeting-text {
+            /* Set the main greeting font and shadow */
+            font-family: 'Tangerine', serif;
+            text-shadow: 4px 4px 4px #aaa;
+            cursor: pointer;
+            display: inline-block;
+            padding: 0 0.5rem;
+            /* Added transition for smooth move effect */
+            transition: transform 1s ease-in-out;
+        }
+
+        /* Custom style applied specifically to the time display */
+        #time {
+            /* Set initial vertical spacing (mt-6 equivalent) */
+            margin-top: 1.5rem;
+            /* Updated transition to cover all position and size changes */
+            transition: font-size 1s ease-in-out, transform 1s ease-in-out, bottom 1s ease-in-out, margin 1s ease-in-out;
+        }
+
+        /* --- STATE CLASS: Shrunk and Moved --- */
+
+        /* When 'shrunk' class is applied to Namaste: move up by 150px, NO scaling */
+        #greeting-text.shrunk {
+            /* Adjusted translateY to move it higher up */
+            transform: translateY(-200px);
+        }
+
+        /* When 'shrunk' class is applied to Time: fix position and reduce font size */
+        #time.shrunk {
+            /* Now only reducing font size to roughly half (2rem = 32px) */
+            font-size: 2rem;
+            /* FIX: Absolute positioning relative to <body> (viewport) for guaranteed separation */
+            position: absolute;
+            /* Default bottom position for medium screens and up */
+            bottom: 4rem;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 0;
+            /* Override the default margin */
+        }
+
+        /* FIX for mobile overlap: Increase bottom position and reduce font size */
+        @media (max-width: 639px) {
+
+            /* Screens smaller than Tailwind 'sm' breakpoint */
+            #time.shrunk {
+                font-size: 1.5rem;
+                /* IMPORTANT FIX: Pushes the time up significantly to clear the author text/icons */
+                bottom: 9rem;
+            }
+        }
+
+        /* English dates slide out/up and fade (Container remains in place) */
+        #english-date,
+        #english-weekday {
+            /* Apply transition to both transform and opacity */
+            transition: transform 1s ease-in-out, opacity 0.5s ease-out 0.5s;
+        }
+
+        #english-date.shrunk,
+        #english-weekday.shrunk {
+            /* Move straight up out of the page and hide */
+            transform: translateY(-100vh);
+            opacity: 0;
+        }
+
+        /* --- NEPALI DATE STYLING --- */
+
+        /* Explicitly define the initial absolute position for smooth transition */
+        #nepali-date {
+            /* Set initial position to be AT THE VERY TOP (New primary date) */
+            position: absolute;
+            top: 2rem;
+            /* Mobile: 2rem (32px) from top */
+            left: 50%;
+            transform: translateX(-50%);
+            /* Crucial: Uses 'all' transition to animate the change from 'top' */
+            transition: all 1s ease-in-out;
+            display: block;
+            margin: 0;
+        }
+
+        /* Adjust initial top position for screens >= sm */
+        @media (min-width: 640px) {
+            #nepali-date {
+                top: 3rem;
+                /* Desktop/Tablet: 3rem (48px) from top */
+            }
+        }
+
+        /* FIX: Target position for the Nepali date when shrunk, now calculated using 'top' */
+        #nepali-date.shrunk-sequence {
+            /* INCREASED GAP: Now 10rem from the bottom (6rem above the 4rem clock) for desktop/tablet */
+            top: calc(100vh - 10rem);
+        }
+
+        /* Mobile adjustment */
+        @media (max-width: 639px) {
+            #nepali-date.shrunk-sequence {
+                /* INCREASED GAP: Now 15rem from the bottom (6rem above the 9rem clock) for mobile */
+                top: calc(100vh - 15rem);
+            }
+        }
+
+        /* English Date and Weekday Container Positioning (NEW STARTING POSITION BELOW NEPALI DATE) */
+        #english-date-container {
+            /* Mobile: Start below Nepali date */
+            top: 5rem;
+            transition: all 1s ease-in-out;
+            /* Add transition for smooth move */
+            position: absolute;
+            /* Needs to be absolute to control 'top' */
+            left: 50%;
+            transform: translatex(-50%);
+        }
+
+        @media (min-width: 640px) {
+            #english-date-container {
+                /* Desktop/Tablet: Start below Nepali date */
+                top: 6rem;
+            }
+        }
+
+
+        /* Class to apply the font only to the author text */
+        .author-rubik-fade {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* --- Text Color Animation Styles (For Author Name) --- */
+        @keyframes waveColorShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 400% 50%;
+            }
+        }
+
+        .author-color-animate {
+            background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC04, #34A853, #4285F4);
+            background-size: 400% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: waveColorShift 8s linear infinite;
+        }
+
+        /* --- Icon Color Animation Keyframes (For Social Icons) */
+        @keyframes iconColorCycle {
+            0% {
+                color: #106AFF;
+            }
+
+            16% {
+                color: #FF0872;
+            }
+
+            32% {
+                color: #FFC908;
+            }
+
+            50% {
+                color: #9213FF;
+            }
+
+            66% {
+                color: #FFFCFB;
+            }
+
+            83% {
+                color: #2CD46B;
+            }
+
+            100% {
+                color: #106AFF;
+            }
+        }
+
+        /* --- Slide Animation Styles (Author Name) */
+        #author-credit {
+            transition: transform 1s ease-out;
+            cursor: pointer;
+        }
+
+        #social-icons {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* --- Icon Entrance Animation --- */
+        @keyframes slideInFromRight {
+            0% {
+                transform: translateX(30px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Base style for social icons (Uses direct color animation) */
+        .social-icon {
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            color: #FFFCFB;
+            transition: none;
+        }
+
+        /* Apply animation and stagger delays when 'icon-visible' class is added to the container */
+        #social-icons.icon-visible .social-icon {
+            opacity: 0;
+        }
+
+        /* Icon 1 (Instagram) */
+        #social-icons.icon-visible a:nth-child(1) .social-icon {
+            animation: slideInFromRight 0.5s ease-out forwards, iconColorCycle 10s linear -1.6s infinite;
+        }
+
+        /* Icon 2 (Facebook) */
+        #social-icons.icon-visible a:nth-child(2) .social-icon {
+            animation: slideInFromRight 0.5s ease-out 0.1s forwards, iconColorCycle 10s linear 0s infinite;
+        }
+
+        /* Icon 3 (WhatsApp) */
+        #social-icons.icon-visible a:nth-child(3) .social-icon {
+            animation: slideInFromRight 0.5s ease-out 0.2s forwards, iconColorCycle 10s linear -8.3s infinite;
+        }
+
+        /* Make the container visible and clickable after the animation starts */
+        #social-icons.icon-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- Quote Container Styles --- */
+        #quote-container {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            max-width: 90vw;
+            /* Ensures it never exceeds 90% of mobile width */
+            /* Removed fixed width: 500px to rely on w-full and md:max-w-lg classes below for responsiveness */
+            min-height: 250px;
+            padding: 1.5rem;
+            border: 2px solid #4D4943;
+            border-radius: 1rem;
+            text-align: center;
+            z-index: 10;
+
+            /* Centering the box in the middle of the screen */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            /* Centers the element itself */
+        }
+
+        #quote-container.visible {
+            opacity: 1;
+        }
+
+        /* --- Typewriter Styles --- */
+        /* Apply to the quote text element */
+        #quote-text {
+            /* Crucial for typewriter effect */
+            overflow: hidden;
+            /* Allow text to wrap naturally instead of nowrap */
+            white-space: normal;
+            /* Blinking cursor effect */
+            border-right: .15em solid #E6E1E5;
+            animation: blink-caret .75s step-end infinite;
+            max-width: 100%;
+        }
+
+        /* Redefine animation for cursor visibility */
+        @keyframes blink-caret {
+
+            from,
+            to {
+                border-color: transparent
+            }
+
+            50% {
+                border-color: #E6E1E5;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen w-full flex flex-col items-center justify-center relative overflow-hidden p-4">
+
+    <!-- Experimental Website Pop-up (Intro Modal) -->
+    <!-- Initially hidden with 'hidden' and uses opacity/scale for smooth entrance/exit -->
+    <div id="intro-modal-overlay"
+        class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 hidden">
+        <div id="intro-modal"
+            class="bg-[#2a2a2e] text-white p-6 rounded-xl shadow-2xl max-w-sm w-11/12 md:w-full relative transform scale-95 opacity-0 transition-all duration-300">
+            <!-- Close Button -->
+            <button id="close-modal-btn"
+                class="absolute top-2 right-4 text-gray-400 hover:text-white transition-colors text-3xl font-light leading-none">
+                &times;
+            </button>
+            <div class="flex flex-col items-center text-center">
+                <!-- Sparkle/Experiment Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="w-12 h-12 text-[#FBBC04] mb-4">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715h5.25" />
+                </svg>
+                <h2 class="text-3xl font-bold mb-3 text-[#4285F4]">Experimental Zone</h2>
+                <p class="text-gray-300 text-lg">
+                    <!-- UPDATED MESSAGE CONTENT AND BOLDING -->
+                    This is an <strong class="text-[#EA4335]">experimental website</strong> created purely for time
+                    pass. Expect some overlapping elements or misaligned content.
+                </p>
+                <p id="modal-countdown-text" class="text-sm mt-3 text-gray-500">
+                    <!-- ID for live countdown is here -->
+                    (Auto-closing in 10 seconds)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Text (Bottom Right) -->
+    <p id="author-credit" class="fixed bottom-6 right-4 text-3xl font-semibold author-color-animate author-rubik-fade"
+        onclick="slideAwayAuthor()">
+        Aashish Dahal
+    </p>
+
+    <!-- Social Media Icons Container - Initially Hidden -->
+    <div id="social-icons" class="fixed bottom-6 right-4 flex space-x-4 opacity-0 pointer-events-none">
+        <!-- Instagram Icon --><a href="https://www.instagram.com/_aashish_dahal/" target="_blank" title="Instagram">
+            <svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M7 2H17C20.866 2 22 3.134 22 7V17C22 20.866 20.866 22 17 22H7C3.134 22 2 20.866 2 17V7C2 3.134 3.134 2 7 2Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M12 16.5C14.4853 16.5 16.5 14.4853 16.5 12C16.5 9.51472 14.4853 7.5 12 7.5C9.51472 7.5 7.5 9.51472 7.5 12C7.5 14.4853 9.51472 16.5 12 16.5Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M17.5 6.5C17.7761 6.5 18 6.27614 18 6C18 5.72386 17.7761 5.5 17.5 5.5C17.2239 5.5 17 5.72386 17 6C17 6.27614 17.2239 6.5 17.5 6.5Z"
+                    fill="currentColor" stroke="none" />
+            </svg>
+        </a>
+
+        <!-- Facebook Icon --><a href="https://www.facebook.com/ashish.dahal.555186" target="_blank" title="Facebook">
+            <svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M17 2H14C12.6739 2 11.4021 2.52678 10.4645 3.46447C9.52678 4.40215 9 5.67392 9 7V10H6V14H9V22H13V14H16L17 10H13V7C13 6.73478 13.1054 6.48043 13.2929 6.29289C13.4804 6.10536 13.7348 6 14 6H17V2Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </a>
+
+        <!-- WhatsApp Icon --><a href="https://wa.me/9779865102989" target="_blank" title="WhatsApp">
+            <svg class="social-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 2C6.47715 2 2 6.47715 2 12C2 13.974 2.551 15.829 3.551 17.433L2.5 21.5L6.5 20.449C8.171 21.449 10.026 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path
+                    d="M15 14C15 15.1046 14.1046 16 13 16H11C9.89543 16 9 15.1046 9 14V10C9 8.89543 9.89543 8 11 8H13C14.1046 8 15 8.89543 15 10V14Z"
+                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </a>
+    </div>
+
+    <!-- NEW: Nepali date element is now outside the group for independent positioning -->
+    <p id="nepali-date" class="text-lg sm:text-xl md:text-2xl font-semibold"></p>
+
+    <!-- English Date and Weekday Container (Top) -->
+    <!-- Positioning for this container is handled in the style block based on Nepali Date's position -->
+    <div id="english-date-container" class="absolute left-1/2 transform -translate-x-1/2 text-center px-4">
+        <!-- The English dates are still here, but they only fade out/up -->
+        <p id="english-date" class="text-lg sm:text-xl font-medium opacity-80 mt-1"></p>
+        <p id="english-weekday" class="text-base sm:text-lg font-normal opacity-80 mt-1"></p>
+    </div>
+
+    <!-- Main Content (Center) -->
+    <main class="flex flex-col items-center justify-center text-center p-6 rounded-xl relative">
+        <h1 id="greeting-text" class="text-7xl sm:text-8xl font-bold" onclick="animateGreetingAndTime()">Namaste 🙏</h1>
+
+        <!-- Quote Container (Now positioned absolutely for centering) -->
+        <div id="quote-container" class="flex flex-col items-center justify-center hidden w-full md:max-w-lg">
+            <p id="quote-text" class="text-xl sm:text-2xl font-normal italic mb-4 text-gray-200">Click Namaste to start
+                the quotes...</p>
+            <p id="quote-author" class="text-lg font-medium text-gray-500 opacity-0">- </p>
+        </div>
+    </main>
+
+    <!-- Time element moved outside <main> to allow absolute positioning relative to the body (viewport) when shrunk -->
+    <p id="time" class="text-5xl sm:text-6xl tabular-nums tracking-wider font-mono font-semibold"></p>
+
+    <script>
+        // Get elements
+        const timeEl = document.getElementById('time');
+        const englishDateEl = document.getElementById('english-date');
+        const nepaliDateEl = document.getElementById('nepali-date');
+        const englishWeekdayEl = document.getElementById('english-weekday');
+        const greetingTextEl = document.getElementById('greeting-text'); // H1 element
+        const authorCreditEl = document.getElementById('author-credit'); // Author text element
+        const socialIconsEl = document.getElementById('social-icons'); // Social icons container
+        const quoteContainerEl = document.getElementById('quote-container'); // Quote Container
+        const quoteTextEl = document.getElementById('quote-text'); // Quote Text element
+        const quoteAuthorEl = document.getElementById('quote-author'); // Quote Author element
+        const englishDateContainerEl = document.getElementById('english-date-container'); // NEW: English Date Container
+
+        // --- Intro Modal Constants and Elements ---
+        const MODAL_TIMEOUT_MS = 10000;
+        const introModalOverlayEl = document.getElementById('intro-modal-overlay');
+        const introModalEl = document.getElementById('intro-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        // Element for the live countdown text
+        const modalCountdownTextEl = document.getElementById('modal-countdown-text');
+
+        // Global variable to track the countdown interval
+        let countdownIntervalId = null;
+
+
+        // --- Intro Modal Logic ---
+
+        /**
+         * Clears the countdown interval and resets the display text.
+         */
+        function stopCountdownAndResetText() {
+            if (countdownIntervalId) {
+                clearInterval(countdownIntervalId);
+                countdownIntervalId = null;
+            }
+            // Reset the text for next time (important if closed manually)
+            const seconds = MODAL_TIMEOUT_MS / 1000;
+            modalCountdownTextEl.textContent = `(Auto-closing in ${seconds} seconds)`;
+        }
+
+        /**
+         * Starts the live countdown display.
+         */
+        function startCountdown(totalSeconds) {
+            let secondsLeft = totalSeconds;
+            // Update display immediately (10)
+            modalCountdownTextEl.textContent = `(Auto-closing in ${secondsLeft} seconds)`;
+
+            countdownIntervalId = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft >= 0) {
+                    modalCountdownTextEl.textContent = `(Auto-closing in ${secondsLeft} seconds)`;
+                }
+                // The interval will be cleared by closeIntroModal when the timer runs out
+            }, 1000);
+        }
+
+        /**
+         * Closes the introductory modal.
+         */
+        function closeIntroModal() {
+            // 1. Clear the automatic close timer
+            const timerId = introModalOverlayEl.getAttribute('data-timer-id');
+            if (timerId) {
+                clearTimeout(parseInt(timerId));
+                introModalOverlayEl.removeAttribute('data-timer-id');
+            }
+
+            // 2. Clear the live countdown interval and reset the text
+            stopCountdownAndResetText();
+
+            // Start the reverse transition (fade and shrink)
+            introModalOverlayEl.style.opacity = '0';
+            introModalEl.classList.add('scale-95', 'opacity-0');
+
+            // Hide the overlay completely after transition completes
+            setTimeout(() => {
+                introModalOverlayEl.classList.add('hidden');
+            }, 300); // Duration matches CSS transition
+        }
+
+        /**
+         * Shows the introductory modal and sets the auto-close timer.
+         */
+        function showIntroModal() {
+            // Make the overlay visible (removing 'hidden') but start with opacity 0
+            introModalOverlayEl.classList.remove('hidden');
+
+            // Timeout to trigger the transition after the element is displayed
+            setTimeout(() => {
+                introModalOverlayEl.style.opacity = '1';
+                // Remove initial state classes to start the smooth entrance
+                introModalEl.classList.remove('scale-95', 'opacity-0');
+                // Start the countdown display
+                startCountdown(MODAL_TIMEOUT_MS / 1000);
+            }, 50);
+
+            // Set automatic close timer using the new 10-second constant
+            const autoCloseTimer = setTimeout(closeIntroModal, MODAL_TIMEOUT_MS);
+            // Store the timer ID to clear it if the user closes the modal manually
+            introModalOverlayEl.setAttribute('data-timer-id', autoCloseTimer);
+        }
+
+        /**
+         * Initializes the intro modal to show on every page load.
+         * Note: Removed localStorage check to make it appear every time.
+         */
+        function initializeIntroModal() {
+            showIntroModal();
+
+            // Attach event listener to the close button
+            closeModalBtn.addEventListener('click', closeIntroModal);
+        }
+
+
+        // --- Quotes Data and State (No change) ---
+
+        // Pause time after typing completes (5 seconds)
+        const QUOTE_PAUSE_TIME_MS = 5000;
+
+        const QUOTES = [
+            { content: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
+            { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+            { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { content: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+            { content: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs" },
+            { content: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+            { content: "Be yourself; everyone else is already taken.", author: "Oscar Wilde" },
+            { content: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+            { content: "It always seems impossible until it’s done.", author: "Nelson Mandela" },
+            { content: "Don’t watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+            { content: "You miss 100% of the shots you don’t take.", author: "Wayne Gretzky" },
+            { content: "Act as if what you do makes a difference. It does.", author: "William James" },
+            { content: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+            { content: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau" },
+            { content: "Happiness is not something ready made. It comes from your own actions.", author: "Dalai Lama" },
+            { content: "Dream big and dare to fail.", author: "Norman Vaughan" }
+        ];
+
+        let quoteInterval = null; // Holds the ID for recursive setTimeout
+        let currentTypingTimeout = null; // Tracks the active typewriter timeout
+
+        /**
+         * Gets a random quote from the QUOTES array.
+         */
+        function getRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * QUOTES.length);
+            return QUOTES[randomIndex];
+        }
+
+        // --- Typewriter and Quote Rotation Logic (No change) ---
+
+        /**
+         * Simulates a typewriter effect by typing text character by character.
+         */
+        function typeWriter(text, element, speed = 40, callback = () => { }) {
+            let i = 0;
+            element.textContent = ''; // Clear existing text
+
+            // Clear any previous typewriter timeout before starting a new one
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+            }
+
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    currentTypingTimeout = setTimeout(type, speed); // Store the ID
+                } else {
+                    currentTypingTimeout = null; // Clear ID when done
+                    callback();
+                }
+            }
+            type();
+        }
+
+        /**
+         * Displays the next quote and schedules the subsequent one recursively.
+         */
+        function displayNextQuote() {
+            // Reset author visibility and content
+            quoteAuthorEl.style.opacity = '0';
+            quoteAuthorEl.textContent = '';
+
+            // Clear any ongoing typing or pending quote interval
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+                currentTypingTimeout = null;
+            }
+            if (quoteInterval) {
+                clearTimeout(quoteInterval);
+                quoteInterval = null;
+            }
+
+            const quote = getRandomQuote();
+
+            // 1. Type out the quote content
+            typeWriter(`"${quote.content}"`, quoteTextEl, 40, () => {
+                // 2. Once quote is typed, set and fade in the author
+                quoteAuthorEl.textContent = `- ${quote.author}`;
+                quoteAuthorEl.style.transition = 'opacity 0.5s ease-in 0.5s';
+                quoteAuthorEl.style.opacity = '1';
+
+                // 3. Schedule the next quote after the pause time (5 seconds)
+                quoteInterval = setTimeout(displayNextQuote, QUOTE_PAUSE_TIME_MS);
+            });
+        }
+
+        /**
+         * Starts the quote rotation using recursive setTimeout.
+         */
+        function startQuoteRotation() {
+            // Ensure any existing timers are cleared before starting fresh.
+            stopQuoteRotation();
+
+            // Display the first quote immediately, which will schedule the next one recursively.
+            displayNextQuote();
+        }
+
+        /**
+         * Stops the quote rotation.
+         */
+        function stopQuoteRotation() {
+            // Clear the recursive timeout
+            if (quoteInterval) {
+                clearTimeout(quoteInterval);
+                quoteInterval = null;
+            }
+            // Clear the active typewriter timeout
+            if (currentTypingTimeout) {
+                clearTimeout(currentTypingTimeout);
+                currentTypingTimeout = null;
+            }
+            // Clear text and author when stopping
+            quoteTextEl.textContent = 'Click Namaste to start the quotes...';
+            quoteAuthorEl.style.opacity = '0';
+        }
+
+
+        // --- Greeting Animation Logic (No change) ---
+
+        /**
+         * Toggles the 'shrunk' class to smoothly move the greeting, time, and date elements.
+         */
+        function animateGreetingAndTime() {
+            const isShrinking = !greetingTextEl.classList.contains('shrunk');
+
+            greetingTextEl.classList.toggle('shrunk');
+            timeEl.classList.toggle('shrunk');
+
+            // Toggle classes on the English dates container for the fade/slide effect
+            // English date elements themselves have the shrinking class applied for their transform/opacity
+            englishDateEl.classList.toggle('shrunk');
+            englishWeekdayEl.classList.toggle('shrunk');
+
+            if (isShrinking) {
+                startQuoteRotation();
+
+                quoteContainerEl.classList.remove('hidden');
+                setTimeout(() => {
+                    quoteContainerEl.classList.add('visible');
+                }, 50);
+
+                // Start the Nepali date transition by applying the target class
+                nepaliDateEl.classList.add('shrunk-sequence');
+
+
+            } else {
+                stopQuoteRotation();
+
+                quoteContainerEl.classList.remove('visible');
+
+                setTimeout(() => {
+                    quoteContainerEl.classList.add('hidden');
+                }, 550);
+
+                // Revert the Nepali date position
+                nepaliDateEl.classList.remove('shrunk-sequence');
+            }
+        }
+
+        // --- Author Slide Animation Logic (No change) ---
+        function slideAwayAuthor() {
+            if (authorCreditEl.classList.contains('slide-moved')) {
+                socialIconsEl.classList.remove('icon-visible');
+                socialIconsEl.style.pointerEvents = 'none';
+                authorCreditEl.style.transform = '';
+                authorCreditEl.classList.remove('slide-moved');
+            } else {
+                const currentRightPosition = authorCreditEl.getBoundingClientRect().right;
+                const elementWidth = authorCreditEl.offsetWidth;
+                const targetLeftPosition = 16;
+                const currentLeftPosition = currentRightPosition - elementWidth;
+                const dx = targetLeftPosition - currentLeftPosition;
+
+                authorCreditEl.style.transform = `translateX(${dx}px)`;
+                authorCreditEl.classList.add('slide-moved');
+
+                setTimeout(() => {
+                    socialIconsEl.classList.add('icon-visible');
+                    socialIconsEl.style.pointerEvents = 'auto';
+                }, 500);
+            }
+        }
+
+        // --- Clock and Date Logic (No change) ---
+
+        /**
+         * Converts the 24-hour format time components to a 12-hour formatted string.
+         */
+        function formatTime(now) {
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12;
+            hours = hours ? hours : 12; // The hour '0' should be '12'
+
+            // Pad the hour string
+            const hoursStr = String(hours).padStart(2, '0');
+
+            return `${hoursStr}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        /**
+         * Function to update time, called every second.
+         */
+        function updateTime() {
+            const now = new Date();
+            timeEl.textContent = formatTime(now);
+        }
+
+        // Function to update dates
+        function updateDates() {
+            const now = new Date();
+
+            const weekdayOptions = {
+                weekday: 'long'
+            };
+            englishWeekdayEl.textContent = now.toLocaleDateString('en-US', weekdayOptions);
+
+            const englishOptions = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            englishDateEl.textContent = now.toLocaleDateString('en-US', englishOptions);
+
+            // Nepali Date
+            try {
+                if (typeof NepaliDate !== 'undefined') {
+                    const nd = new NepaliDate(now);
+                    const nepaliDateStr = nd.format('MMMM D, YYYY');
+                    nepaliDateEl.textContent = nepaliDateStr + ' B.S.';
+                } else {
+                    nepaliDateEl.textContent = "Nepali date converter not fully loaded.";
+                }
+            } catch (e) {
+                console.error("Error generating Nepali date:", e);
+                nepaliDateEl.textContent = "Could not load Nepali date.";
+            }
+        }
+
+        /**
+         * Handles tab visibility changes to prevent timer throttling bugs.
+         */
+        function handleVisibilityChange() {
+            if (document.hidden) {
+                if (currentTypingTimeout) {
+                    clearTimeout(currentTypingTimeout);
+                    currentTypingTimeout = null;
+                }
+            } else {
+                if (greetingTextEl.classList.contains('shrunk')) {
+                    startQuoteRotation();
+                }
+            }
+        }
+
+        /**
+         * Initializes and starts the clock and date intervals.
+         */
+        function startClockAndDates() {
+            // Call functions immediately to load data
+            updateTime();
+            updateDates();
+
+            // Set intervals
+            setInterval(updateTime, 1000);
+            // Dates only need to update every minute
+            setInterval(updateDates, 60000);
+
+            // Add visibility listener for tab switching bug fix
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+        }
+
+        // --- Console Logging Function (No change) ---
+
+        // The time this file was last edited (2025/11/13, 9:48 PM)
+        const LAST_UPDATED_TIMESTAMP_STRING = "2025-11-13T21:48:00";
+
+        /**
+         * Logs the last updated timestamp to the console in the format YYYY/MM/DD-HH:MM AM/PM.
+         */
+        function logLastUpdated() {
+            const date = new Date(LAST_UPDATED_TIMESTAMP_STRING);
+
+            if (isNaN(date.getTime())) {
+                console.error("Could not parse last updated timestamp.");
+                return;
+            }
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const datePart = `${year}/${month}/${day}`;
+
+            let hours = date.getHours();
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const hoursStr = String(hours).padStart(2, '0');
+
+            const timePart = `${hoursStr}:${minutes} ${ampm}`;
+
+            console.log(`Page Last Updated: ${datePart}-${timePart}`);
+        }
+
+        // --- Initialization ---
+
+        window.onload = function () {
+            // Initialize and manage the one-time introductory modal
+            initializeIntroModal();
+
+            // Start the clock and date intervals
+            startClockAndDates();
+
+            // Log the update time to the console
+            logLastUpdated();
+        };
+
+        // Expose functions globally for HTML onclick
+        window.animateGreetingAndTime = animateGreetingAndTime;
+        window.slideAwayAuthor = slideAwayAuthor;
+    </script>
+</body>
+
+</html>
