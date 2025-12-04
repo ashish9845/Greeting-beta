@@ -104,10 +104,120 @@
             /* Remove transitions related to hiding/showing */
             transition: none;
         }
+
+        /* Custom style for the BETA badge - Moved outside the card and set to fixed position (viewport relative) */
+        .beta-badge {
+            /* Position relative to the viewport (fixed) */
+            position: fixed;
+            /* CHANGED */
+            top: 1rem;
+            /* Spaced down from the top edge */
+            left: 1rem;
+            /* Spaced in from the left edge */
+
+            /* Visual style: Changed to Red */
+            background-color: #EF4444;
+            /* Tailwind red-500 */
+            color: white;
+            padding: 0.25rem 0.75rem;
+            /* Vertical and horizontal padding */
+            font-size: 0.875rem;
+            /* text-sm */
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            border-radius: 9999px;
+            /* Pill shape */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            /* Indicate clickability */
+            transition: background-color 0.2s, transform 0.1s;
+            z-index: 10;
+        }
+
+        .beta-badge:hover {
+            background-color: #DC2626;
+            /* Tailwind red-600 on hover */
+            transform: translateY(-1px);
+            /* Slight lift */
+        }
+
+        /* Custom styling for the Modal content when closed (for animation) */
+        #beta-modal-content {
+            transition: all 0.3s ease-out;
+            /* Ensures smooth scaling */
+        }
+
+        /* Custom style for the Search Container - Fixed to Top-Right (NEW POSITIONING) */
+        .search-container {
+            position: fixed;
+            /* CHANGED from absolute to fixed */
+            top: 1rem;
+            right: 1rem;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-input {
+            background-color: #1C1B1F;
+            /* Dark background */
+            color: #E6E1E5;
+            /* Light text */
+            border: 1px solid #4B5563;
+            /* Gray border */
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            /* Pill shape */
+            font-size: 0.875rem;
+            width: 150px;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #A78BFA;
+            /* Purple focus ring */
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.5);
+            width: 200px;
+            /* Expand on focus */
+        }
+
+        .search-button {
+            background-color: #A78BFA;
+            /* Purple button */
+            color: white;
+            padding: 0.5rem;
+            border-radius: 9999px;
+            transition: background-color 0.2s, transform 0.1s;
+            cursor: pointer;
+        }
+
+        .search-button:hover {
+            background-color: #8B5CF6;
+            /* Darker purple on hover */
+        }
     </style>
 </head>
 
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- BETA Indicator Badge (MOVED OUTSIDE MAIN CARD) -->
+    <div id="beta-badge" class="beta-badge" onclick="showBetaModal(true)">BETA</div>
+
+    <!-- Search Box Container (MOVED OUTSIDE MAIN CARD, FIXED POSITION) -->
+    <div id="search-container" class="search-container">
+        <input type="text" id="search-input" placeholder="Search..." class="search-input"
+            onkeydown="handleKeydown(event)">
+        <button id="search-button" class="search-button" onclick="handleSearch()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </button>
+    </div>
 
     <!-- Main Content Card -->
     <div id="main-card"
@@ -194,6 +304,31 @@
         </a>
     </div>
 
+    <!-- Custom Modal/Message Box for Beta Information or Search Status (Hidden by default, updated for animation) -->
+    <div id="beta-modal"
+        class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-out">
+        <div id="beta-modal-content"
+            class="bg-[#2D2C31] p-8 rounded-xl shadow-3xl max-w-sm w-full relative border-2 border-red-500 transform scale-95 transition-all duration-300 ease-out">
+            <!-- Close Button -->
+            <button onclick="hideBetaModal()"
+                class="absolute top-2 right-2 text-gray-400 hover:text-red-400 p-2 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+
+            <h2 id="modal-title" class="text-2xl font-bold text-red-400 mb-4">Beta Version Information</h2>
+            <p id="modal-body" class="text-gray-300">
+                This application is currently in **Beta Version**.
+                <br><br>
+                New features, updates, and improvements are actively in the developmental phase. Please be aware that
+                you might encounter occasional changes or minor issues.
+            </p>
+        </div>
+    </div>
+
     <!-- JavaScript Logic -->
     <script>
         // --- Configuration & Constants ---
@@ -235,6 +370,11 @@
         let socialIconsEl;
         let mainContentEl;
         let headerSeparatorEl;
+        let betaModalEl;
+        let betaModalContentEl;
+        let modalTitleEl;
+        let modalBodyEl;
+        let searchInputEl;
 
         let quoteInterval = null; // Holds the ID for recursive setTimeout
         let currentTypingTimeout = null; // Tracks the active typewriter timeout
@@ -491,6 +631,111 @@
             setQuoteRotationState(!isQuoteRotationActive);
         }
 
+        // --- Modal Functions (Shared for Beta Info and Search Status) ---
+
+        /**
+         * Sets the modal content back to the default Beta info.
+         */
+        function resetModalContentToBeta() {
+            modalTitleEl.textContent = "Beta Version Information";
+            modalTitleEl.classList.remove('text-purple-400');
+            modalTitleEl.classList.add('text-red-400');
+
+            modalBodyEl.innerHTML = `
+                This application is currently in **Beta Version**.
+                <br><br>
+                New features, updates, and improvements are actively in the developmental phase. Please be aware that you might encounter occasional changes or minor issues.
+            `;
+            betaModalContentEl.classList.remove('border-purple-500');
+            betaModalContentEl.classList.add('border-red-500');
+        }
+
+        /**
+         * Shows the Modal with animation.
+         * @param {boolean} isBetaMode If true, sets content to static Beta text. If false, uses current dynamic content (for search/status).
+         */
+        function showBetaModal(isBetaMode = false) {
+            if (betaModalEl && betaModalContentEl) {
+                if (isBetaMode) {
+                    resetModalContentToBeta();
+                }
+
+                // 1. Make container visible and start fade in
+                betaModalEl.classList.remove('opacity-0', 'pointer-events-none');
+
+                // 2. Start scale up animation on the content
+                betaModalContentEl.classList.remove('scale-95');
+                betaModalContentEl.classList.add('scale-100');
+            }
+        }
+
+        /**
+         * Hides the Modal with animation.
+         */
+        function hideBetaModal() {
+            if (betaModalEl && betaModalContentEl) {
+                // 1. Start transition by scaling down
+                betaModalContentEl.classList.remove('scale-100');
+                betaModalContentEl.classList.add('scale-95');
+
+                // 2. After scale transition completes (300ms), fade out the container
+                setTimeout(() => {
+                    betaModalEl.classList.add('opacity-0', 'pointer-events-none');
+                }, 300); // Wait for CSS transition duration
+            }
+        }
+
+        // --- Search Functions (NEW) ---
+
+        /**
+         * Displays a temporary message using the modal structure for search status.
+         * @param {string} message The message to display.
+         */
+        function showTemporaryMessage(message) {
+            // Set content for search status
+            modalTitleEl.textContent = "Search Status";
+            modalTitleEl.classList.remove('text-red-400');
+            modalTitleEl.classList.add('text-purple-400');
+            modalBodyEl.innerHTML = message;
+
+            // Change border to match the search button color
+            betaModalContentEl.classList.remove('border-red-500');
+            betaModalContentEl.classList.add('border-purple-500');
+
+            // Show the modal
+            showBetaModal(false);
+
+            // Hide the modal automatically after 3 seconds
+            setTimeout(hideBetaModal, 3000);
+        }
+
+        /**
+         * Handles the search action.
+         */
+        function handleSearch() {
+            const query = searchInputEl.value.trim();
+
+            if (query.length > 0) {
+                console.log(`Search performed for: "${query}"`);
+                showTemporaryMessage(`Feature is in development: Searched for **"${query}"**`);
+            } else {
+                showTemporaryMessage("Please enter a search query.");
+            }
+            // Clear input after search attempt
+            searchInputEl.value = '';
+        }
+
+        /**
+         * Handles the Enter key press event in the search box.
+         */
+        function handleKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default form submission
+                handleSearch();
+            }
+        }
+
+
         // --- Initialization ---
 
         function initializeApp() {
@@ -505,6 +750,11 @@
             socialIconsEl = document.getElementById('social-icons');
             mainContentEl = document.getElementById('main-content');
             headerSeparatorEl = document.getElementById('header-separator');
+            betaModalEl = document.getElementById('beta-modal');
+            betaModalContentEl = document.getElementById('beta-modal-content');
+            modalTitleEl = document.getElementById('modal-title');
+            modalBodyEl = document.getElementById('modal-body');
+            searchInputEl = document.getElementById('search-input');
 
             // Set initial greeting
             greetingTextEl.textContent = getGreeting();
@@ -551,6 +801,10 @@
         window.toggleQuoteRotation = toggleQuoteRotation;
         window.setQuoteRotationState = setQuoteRotationState;
         window.displayNextQuote = displayNextQuote;
+        window.showBetaModal = showBetaModal;
+        window.hideBetaModal = hideBetaModal;
+        window.handleSearch = handleSearch;
+        window.handleKeydown = handleKeydown;
     </script>
 </body>
 
