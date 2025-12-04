@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greetings</title>
+    <title>AI Media Player</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -15,7 +15,7 @@
         href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&family=Inter:wght@400;700&family=Tangerine:wght@400;700&display=swap"
         rel="stylesheet">
 
-    <!-- Load Nepali Date Converter Library (v3.3.1 which typically exposes 'NepaliDateConverter' or 'NepaliDate') -->
+    <!-- Load Nepali Date Converter Library -->
     <script src="https://cdn.jsdelivr.net/npm/nepali-date-converter@3.3.1/dist/nepali-date-converter.umd.js">
     </script>
 
@@ -25,6 +25,7 @@
             background-color: #1C1B1F;
             color: #E6E1E5;
             font-family: 'Inter', sans-serif;
+            min-height: 100vh;
         }
 
         /* Custom style applied specifically to the Greeting Text */
@@ -38,22 +39,12 @@
         #quote-text {
             font-family: 'Tangerine', cursive;
             transition: all 0.7s ease-out;
-            /* Ensure the typewriter effect cursor blinks */
             border-right: 0.15em solid transparent;
-        }
-
-        /* Class for hiding/fading elements when shrinking (Used for English date and Nepali date) */
-        .shrunk {
-            opacity: 0 !important;
-            transform: translateY(-50px) !important;
-            transition: all 0.5s ease-in;
-            pointer-events: none;
         }
 
         /* Positioning for elements when the card is active (Quote mode) */
         #time-display.active-state {
             font-size: 2.5rem;
-            /* Smaller time display */
             position: absolute;
             top: 2rem;
             left: 50%;
@@ -72,104 +63,59 @@
             opacity: 1;
             transform: scale(1);
             pointer-events: auto;
-            /* Ensure the quote container adds spacing and border when active */
-            padding-top: 1.5rem;
-            /* pt-6 equivalent */
-            padding-bottom: 1.5rem;
-            /* pb-6 equivalent */
-        }
-
-        /* Apply border and padding to main content */
-        #main-content {
-            transition: all 0.7s ease-out;
             padding-top: 1.5rem;
             padding-bottom: 1.5rem;
         }
 
-        /* When active, remove main content padding/borders */
-        #main-content.active-quote-mode {
-            border-top: none;
-            border-bottom: none;
-        }
-
-        /* The header needs a bottom margin/padding to account for the border it no longer has */
-        #header-content:not(.active-state) {
-            padding-bottom: 1.5rem;
-        }
-
-        /* Ensure social icons are always visible and positioned correctly */
-        #social-icons {
-            opacity: 1;
-            pointer-events: auto;
-            /* Remove transitions related to hiding/showing */
-            transition: none;
-        }
-
-        /* Custom style for the BETA badge - Moved outside the card and set to fixed position (viewport relative) */
+        /* Custom style for the BETA badge - Fixed to Top-Left */
         .beta-badge {
-            /* Position relative to the viewport (fixed) */
             position: fixed;
-            /* CHANGED */
             top: 1rem;
-            /* Spaced down from the top edge */
             left: 1rem;
-            /* Spaced in from the left edge */
-
-            /* Visual style: Changed to Red */
             background-color: #EF4444;
-            /* Tailwind red-500 */
             color: white;
             padding: 0.25rem 0.75rem;
-            /* Vertical and horizontal padding */
             font-size: 0.875rem;
-            /* text-sm */
             font-weight: bold;
             letter-spacing: 0.05em;
             text-transform: uppercase;
             border-radius: 9999px;
-            /* Pill shape */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
             cursor: pointer;
-            /* Indicate clickability */
             transition: background-color 0.2s, transform 0.1s;
             z-index: 10;
         }
 
         .beta-badge:hover {
             background-color: #DC2626;
-            /* Tailwind red-600 on hover */
             transform: translateY(-1px);
-            /* Slight lift */
         }
 
-        /* Custom styling for the Modal content when closed (for animation) */
-        #beta-modal-content {
-            transition: all 0.3s ease-out;
-            /* Ensures smooth scaling */
-        }
-
-        /* Custom style for the Search Container - Fixed to Top-Right (NEW POSITIONING) */
+        /* Custom style for the Search Container - Fixed to Top-Right */
         .search-container {
             position: fixed;
-            /* CHANGED from absolute to fixed */
             top: 1rem;
             right: 1rem;
-            z-index: 10;
+            z-index: 20;
             display: flex;
             align-items: center;
+            gap: 0.5rem;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        /* Wrapper for input and button */
+        .search-input-wrapper {
+            display: flex;
             gap: 0.5rem;
         }
 
         .search-input {
             background-color: #1C1B1F;
-            /* Dark background */
             color: #E6E1E5;
-            /* Light text */
             border: 1px solid #4B5563;
-            /* Gray border */
             padding: 0.5rem 1rem;
             border-radius: 9999px;
-            /* Pill shape */
             font-size: 0.875rem;
             width: 150px;
             transition: all 0.2s;
@@ -178,45 +124,166 @@
         .search-input:focus {
             outline: none;
             border-color: #A78BFA;
-            /* Purple focus ring */
             box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.5);
             width: 200px;
-            /* Expand on focus */
         }
 
         .search-button {
             background-color: #A78BFA;
-            /* Purple button */
             color: white;
             padding: 0.5rem;
             border-radius: 9999px;
             transition: background-color 0.2s, transform 0.1s;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
         }
 
         .search-button:hover {
             background-color: #8B5CF6;
-            /* Darker purple on hover */
+        }
+
+        /* --- New Video Player Styles --- */
+        #video-player-container {
+            margin-top: 2rem;
+            width: 90%;
+            max-width: 900px;
+            min-height: 400px;
+            background-color: #1C1B1F;
+            border-radius: 1rem;
+            box-shadow: 0 0 40px rgba(167, 139, 250, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #A78BFA;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out;
+            border: 2px solid #3730A3;
+            position: relative;
+        }
+
+        #video-player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .video-placeholder-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 2rem;
+        }
+
+        /* --- Suggestions List Styles --- */
+        #suggestions-list {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 240px;
+            /* Slightly wider to accommodate the thumbnail */
+            max-height: 240px;
+            overflow-y: auto;
+            background-color: #2D2C31;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            z-index: 19;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #suggestions-list.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .suggestion-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            color: #E6E1E5;
+            font-size: 0.875rem;
+            border-bottom: 1px solid #4B5563;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.1s;
+        }
+
+        .suggestion-item:hover {
+            background-color: #4B5563;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-thumbnail {
+            width: 40px;
+            height: 25px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-right: 0.75rem;
+            background-color: #4B5563;
+            /* Placeholder color */
+        }
+
+        .loading-suggestion {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            color: #A78BFA;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            border: 3px solid rgba(167, 139, 250, 0.1);
+            border-left-color: #A78BFA;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
         }
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="flex flex-col items-center justify-center p-4">
 
-    <!-- BETA Indicator Badge (MOVED OUTSIDE MAIN CARD) -->
+    <!-- BETA Indicator Badge (Fixed Top-Left) -->
     <div id="beta-badge" class="beta-badge" onclick="showBetaModal(true)">BETA</div>
 
-    <!-- Search Box Container (MOVED OUTSIDE MAIN CARD, FIXED POSITION) -->
+    <!-- Search Box Container (Fixed Top-Right) -->
     <div id="search-container" class="search-container">
-        <input type="text" id="search-input" placeholder="Search..." class="search-input"
-            onkeydown="handleKeydown(event)">
-        <button id="search-button" class="search-button" onclick="handleSearch()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-        </button>
+        <!-- Input and Button Wrapper -->
+        <div class="search-input-wrapper">
+            <input type="text" id="search-input" placeholder="Search Movie/Series..." class="search-input"
+                onkeydown="handleKeydown(event)" oninput="handleInput()">
+            <button id="search-button" class="search-button" onclick="handleSearch()">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+        </div>
+        <!-- Suggestions List -->
+        <ul id="suggestions-list"></ul>
     </div>
 
     <!-- Main Content Card -->
@@ -269,7 +336,12 @@
         </main>
     </div>
 
-    <!-- Social Media Icons Container - Now permanently visible and active -->
+    <!-- Video Player Container (NEW ELEMENT) -->
+    <div id="video-player-container" class="lg:h-[500px] h-[300px]">
+        <p class="video-placeholder-text">Search for a Movie or TV Series to play it here.</p>
+    </div>
+
+    <!-- Social Media Icons Container -->
     <div id="social-icons" class="fixed bottom-6 right-4 flex space-x-4 z-20 transition-all duration-500">
         <!-- Instagram Icon -->
         <a href="https://www.instagram.com/_aashish_dahal/" target="_blank" title="Instagram"
@@ -304,7 +376,7 @@
         </a>
     </div>
 
-    <!-- Custom Modal/Message Box for Beta Information or Search Status (Hidden by default, updated for animation) -->
+    <!-- Custom Modal/Message Box (Used for Beta Info and Search Status) -->
     <div id="beta-modal"
         class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300 ease-out">
         <div id="beta-modal-content"
@@ -329,15 +401,26 @@
         </div>
     </div>
 
+    <!-- Loading Spinner (Hidden by default) -->
+    <div id="loading-spinner"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex flex-col items-center justify-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-4 border-purple-500"></div>
+        <p class="text-white mt-4 text-lg">Searching the database...</p>
+    </div>
+
     <!-- JavaScript Logic -->
     <script>
         // --- Configuration & Constants ---
-
-        // The date/time of the last known update for the application
-        const LAST_UPDATED_TIMESTAMP_STRING = "November 28, 2025 11:45:00"; // Updated timestamp
-
-        // **Quote auto change timer set to 10 seconds (10000 ms)**
+        const LAST_UPDATED_TIMESTAMP_STRING = "December 04, 2025 09:30:00"; // Updated timestamp
         const QUOTE_PAUSE_TIME_MS = 10000;
+        const VIDKING_BASE_URL = "https://www.vidking.net/embed/";
+
+        // Gemini API Config
+        const GEMINI_TEXT_MODEL = 'gemini-2.5-flash-preview-09-2025';
+        const IMAGEN_MODEL = 'imagen-4.0-generate-001';
+        const apiKey = ""; // API key is provided by the canvas environment automatically
+        const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TEXT_MODEL}:generateContent?key=${apiKey}`;
+        const IMAGEN_URL = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGEN_MODEL}:predict?key=${apiKey}`;
 
         // Fixed set of inspirational quotes and authors
         const QUOTES = [
@@ -360,32 +443,76 @@
         ];
 
         // Global element references
-        let greetingTextEl;
-        let quoteContainerEl;
-        let quoteTextEl;
-        let quoteAuthorEl;
-        let englishDateCombinedEl;
-        let nepaliDateEl;
-        let timeDisplayEl;
-        let socialIconsEl;
-        let mainContentEl;
-        let headerSeparatorEl;
-        let betaModalEl;
-        let betaModalContentEl;
-        let modalTitleEl;
-        let modalBodyEl;
-        let searchInputEl;
+        let greetingTextEl, quoteContainerEl, quoteTextEl, quoteAuthorEl, englishDateCombinedEl, nepaliDateEl, timeDisplayEl, mainContentEl, headerSeparatorEl, betaModalEl, betaModalContentEl, modalTitleEl, modalBodyEl, searchInputEl, videoPlayerContainerEl, loadingSpinnerEl, suggestionsListEl;
 
-        let quoteInterval = null; // Holds the ID for recursive setTimeout
-        let currentTypingTimeout = null; // Tracks the active typewriter timeout
-        let isQuoteRotationActive = false; // State flag
+        let quoteInterval = null;
+        let currentTypingTimeout = null;
+        let isQuoteRotationActive = false;
+        let typingTimer; // For debouncing suggestions
+        const DEBOUNCE_TIME = 500;
 
         // --- Utility Functions ---
 
         /**
-         * Gets a time-based greeting.
-         * @returns {string} The appropriate greeting (e.g., "Good Morning!").
+         * Helper function for exponential backoff retry logic
          */
+        async function fetchWithBackoff(url, options, retries = 5, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        if (response.status === 429 && i < retries - 1) { // Rate limit
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; // Exponential backoff
+                            continue;
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === retries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        /**
+         * Generates a movie poster image using the Imagen model.
+         * @param {string} title - The movie title to base the prompt on.
+         * @returns {Promise<string|null>} Base64 data URL of the image, or null on failure.
+         */
+        async function generateImage(title) {
+            const imagePrompt = `A high-contrast, minimalist movie poster thumbnail for the movie '${title}', in a 16:9 aspect ratio. Focus on key visual elements.`;
+
+            const payload = {
+                instances: [{ prompt: imagePrompt }],
+                parameters: { "sampleCount": 1 }
+            };
+
+            const options = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            };
+
+            try {
+                const response = await fetchWithBackoff(IMAGEN_URL, options);
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    // Return the image data URL
+                    return `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                } else {
+                    console.error("Image generation failed or returned no data:", result);
+                    return null;
+                }
+            } catch (error) {
+                console.error("Error generating image:", error);
+                return null;
+            }
+        }
+
         function getGreeting() {
             const hour = new Date().getHours();
             if (hour < 5) return "Good Night! 🌃";
@@ -394,27 +521,14 @@
             return "Good Evening! 🌙";
         }
 
-        /**
-         * Selects a random quote from the QUOTES array, ensuring it's not the same as the current one.
-         * @returns {object} A quote object with 'content' and 'author' properties.
-         */
         function getRandomQuote() {
-            // Filter out the current quote to ensure a different one is selected next
             const currentQuoteText = quoteTextEl.textContent.replace(/"/g, '');
             const availableQuotes = QUOTES.filter(q => q.content !== currentQuoteText);
-
-            // If filtering leaves no options (shouldn't happen with a large list) fall back to full list
             const selectionPool = availableQuotes.length > 0 ? availableQuotes : QUOTES;
-
             const randomIndex = Math.floor(Math.random() * selectionPool.length);
             return selectionPool[randomIndex];
         }
 
-        // --- Date & Time Functions ---
-
-        /**
-         * Function to update time, called every second.
-         */
         function updateTime() {
             const now = new Date();
             const timeOptions = {
@@ -423,14 +537,8 @@
             timeDisplayEl.textContent = now.toLocaleTimeString('en-US', timeOptions);
         }
 
-        /**
-         * Function to update dates (English and Nepali).
-         * @returns {boolean} True if Nepali date was successfully calculated, false otherwise.
-         */
         function updateDates() {
             const now = new Date();
-
-            // 1. English Date (Combined: Eg: Friday, Nov 28, 2025)
             const combinedEnglishOptions = {
                 weekday: 'long',
                 month: 'short',
@@ -438,102 +546,69 @@
                 year: 'numeric'
             };
             englishDateCombinedEl.textContent = now.toLocaleDateString('en-US', combinedEnglishOptions);
-
-            // 2. Nepali Date (FIXED LOGIC with check for both potential global names)
             const DateConstructor = typeof NepaliDateConverter !== 'undefined' ? NepaliDateConverter : (typeof NepaliDate !== 'undefined' ? NepaliDate : null);
 
             if (DateConstructor) {
                 try {
-                    // Use the identified constructor
                     const nepaliDateConverter = new DateConstructor(now);
-                    // Format the date string
                     const nepaliDateStr = `${nepaliDateConverter.format('MMMM D, YYYY')} B.S.`;
                     nepaliDateEl.textContent = nepaliDateStr;
-                    nepaliDateEl.classList.remove('text-red-500'); // Remove error style if successful
-                    return true; // Success
+                    nepaliDateEl.classList.remove('text-red-500');
+                    return true;
                 } catch (e) {
-                    // This error indicates the converter loaded but failed to process the date object.
                     console.error("Error converting to Nepali date:", e);
                     nepaliDateEl.textContent = "Nepali Date: Conversion Error.";
                     nepaliDateEl.classList.add('text-red-500');
                     return false;
                 }
             } else {
-                // This indicates the script hasn't fully loaded or defined its global object yet.
                 nepaliDateEl.textContent = "Nepali Date: Loading...";
                 nepaliDateEl.classList.add('text-yellow-500');
                 return false;
             }
         }
 
-        /**
-         * Waits for the Nepali Date Library to load before setting up the interval.
-         */
         function initializeDatesWithRetry() {
             const success = updateDates();
-
             if (success) {
-                // Now that the date is loaded, set the interval for subsequent updates every minute
                 setInterval(updateDates, 60000);
-                console.log("Nepali Date initialized successfully.");
             } else {
-                // If unsuccessful (likely because the library hasn't loaded), retry after 200ms
                 setTimeout(initializeDatesWithRetry, 200);
             }
         }
 
-        /**
-         * Starts the clock and date intervals.
-         */
         function startClockAndDates() {
-            // 1. Time updates (always works)
             updateTime();
             setInterval(updateTime, 1000);
-
-            // 2. Date updates (uses retry logic)
             initializeDatesWithRetry();
         }
 
-        // --- Typewriter and Quote Rotation Logic ---
-
-        /**
-         * Simulates a typewriter effect by typing text character by character.
-         */
         function typeWriter(text, element, speed = 40, callback = () => { }) {
             let i = 0;
-            element.textContent = ''; // Clear existing text
-
-            // Clear any previous typewriter timeout before starting a new one
+            element.textContent = '';
             if (currentTypingTimeout) {
                 clearTimeout(currentTypingTimeout);
             }
-
-            // Start the cursor blinking (by changing border color)
             element.style.borderColor = '#E6E1E5';
 
             function type() {
                 if (i < text.length) {
                     element.textContent += text.charAt(i);
                     i++;
-                    currentTypingTimeout = setTimeout(type, speed); // Store the ID
+                    currentTypingTimeout = setTimeout(type, speed);
                 } else {
-                    currentTypingTimeout = null; // Clear ID when done
-                    element.style.borderColor = 'transparent'; // Stop cursor blinking
+                    currentTypingTimeout = null;
+                    element.style.borderColor = 'transparent';
                     callback();
                 }
             }
             type();
         }
 
-        /**
-         * Displays the next quote and schedules the subsequent one recursively.
-         */
         function displayNextQuote() {
-            // Reset author visibility and content
             quoteAuthorEl.style.opacity = '0';
             quoteAuthorEl.textContent = '';
 
-            // Clear any ongoing typing or pending quote interval
             if (currentTypingTimeout) {
                 clearTimeout(currentTypingTimeout);
                 currentTypingTimeout = null;
@@ -544,103 +619,61 @@
             }
 
             const quote = getRandomQuote();
-
-            // 1. Type out the quote content
             typeWriter(`"${quote.content}"`, quoteTextEl, 40, () => {
-                // 2. Once quote is typed, set and fade in the author
                 quoteAuthorEl.textContent = `— ${quote.author}`;
                 quoteAuthorEl.style.transition = 'opacity 0.5s ease-in 0.5s';
                 quoteAuthorEl.style.opacity = '1';
 
-                // 3. Schedule the next quote after the pause time (10 seconds)
                 if (isQuoteRotationActive) {
                     quoteInterval = setTimeout(displayNextQuote, QUOTE_PAUSE_TIME_MS);
                 }
             });
         }
 
-        /**
-         * Stops the quote rotation.
-         */
         function stopQuoteRotation() {
             isQuoteRotationActive = false;
-            // Clear the recursive timeout
             if (quoteInterval) {
                 clearTimeout(quoteInterval);
                 quoteInterval = null;
             }
-            // Clear the active typewriter timeout
             if (currentTypingTimeout) {
                 clearTimeout(currentTypingTimeout);
                 currentTypingTimeout = null;
             }
-            // Clear text and author when stopping
             quoteTextEl.textContent = 'Click the greeting above to start the inspiration.';
             quoteAuthorEl.textContent = '— Ready';
-            quoteAuthorEl.style.opacity = '1'; // Keep "Ready" visible
+            quoteAuthorEl.style.opacity = '1';
         }
 
-        /**
-         * Sets the main card state (Expanded/Active or Collapsed/Inactive).
-         * @param {boolean} shouldActivate True to activate the quote rotation, false to revert.
-         */
         function setQuoteRotationState(shouldActivate) {
             isQuoteRotationActive = shouldActivate;
-
             if (shouldActivate) {
-                // 1. Shrink/Move Header elements and hide dates
-                englishDateCombinedEl.classList.add('active-state'); // Hide English date
-                nepaliDateEl.classList.add('shrunk'); // Hide Nepali date
-
-                // SHOW the separator when quote mode is active
+                englishDateCombinedEl.classList.add('active-state');
+                nepaliDateEl.classList.add('shrunk');
                 headerSeparatorEl.classList.remove('opacity-0');
-
-                // 2. Remove default border/padding from main content and move Time to the top
-                mainContentEl.classList.add('active-quote-mode'); // Use a custom class for active mode
-                timeDisplayEl.classList.add('active-state'); // Absolute position time
-
-                // 3. Make Quote container visible and activate rotation
+                mainContentEl.classList.add('active-quote-mode');
+                timeDisplayEl.classList.add('active-state');
                 quoteContainerEl.classList.add('active-state');
-
-                // Delay quote start slightly
                 setTimeout(displayNextQuote, 700);
-
             } else {
-                // 1. Restore Header elements
                 englishDateCombinedEl.classList.remove('active-state');
                 nepaliDateEl.classList.remove('shrunk');
-
-                // HIDE the separator when quote mode is inactive
                 headerSeparatorEl.classList.add('opacity-0');
-
-                // 2. Restore default border/padding and Time position
                 mainContentEl.classList.remove('active-quote-mode');
                 timeDisplayEl.classList.remove('active-state');
-
-                // 3. Hide Quote container and stop rotation
                 quoteContainerEl.classList.remove('active-state');
-
                 stopQuoteRotation();
             }
         }
 
-        /**
-         * Toggles the quote rotation state on greeting click.
-         */
         function toggleQuoteRotation() {
             setQuoteRotationState(!isQuoteRotationActive);
         }
 
-        // --- Modal Functions (Shared for Beta Info and Search Status) ---
-
-        /**
-         * Sets the modal content back to the default Beta info.
-         */
         function resetModalContentToBeta() {
             modalTitleEl.textContent = "Beta Version Information";
             modalTitleEl.classList.remove('text-purple-400');
             modalTitleEl.classList.add('text-red-400');
-
             modalBodyEl.innerHTML = `
                 This application is currently in **Beta Version**.
                 <br><br>
@@ -650,91 +683,314 @@
             betaModalContentEl.classList.add('border-red-500');
         }
 
-        /**
-         * Shows the Modal with animation.
-         * @param {boolean} isBetaMode If true, sets content to static Beta text. If false, uses current dynamic content (for search/status).
-         */
         function showBetaModal(isBetaMode = false) {
             if (betaModalEl && betaModalContentEl) {
                 if (isBetaMode) {
                     resetModalContentToBeta();
                 }
-
-                // 1. Make container visible and start fade in
                 betaModalEl.classList.remove('opacity-0', 'pointer-events-none');
-
-                // 2. Start scale up animation on the content
                 betaModalContentEl.classList.remove('scale-95');
                 betaModalContentEl.classList.add('scale-100');
             }
         }
 
-        /**
-         * Hides the Modal with animation.
-         */
         function hideBetaModal() {
             if (betaModalEl && betaModalContentEl) {
-                // 1. Start transition by scaling down
                 betaModalContentEl.classList.remove('scale-100');
                 betaModalContentEl.classList.add('scale-95');
-
-                // 2. After scale transition completes (300ms), fade out the container
                 setTimeout(() => {
                     betaModalEl.classList.add('opacity-0', 'pointer-events-none');
-                }, 300); // Wait for CSS transition duration
+                }, 300);
             }
         }
 
-        // --- Search Functions (NEW) ---
+        function showTemporaryMessage(message, isError = false) {
+            modalTitleEl.textContent = isError ? "Search Error" : "Search Status";
+            modalTitleEl.classList.remove('text-red-400', 'text-purple-400');
+            modalTitleEl.classList.add(isError ? 'text-red-400' : 'text-purple-400');
 
-        /**
-         * Displays a temporary message using the modal structure for search status.
-         * @param {string} message The message to display.
-         */
-        function showTemporaryMessage(message) {
-            // Set content for search status
-            modalTitleEl.textContent = "Search Status";
-            modalTitleEl.classList.remove('text-red-400');
-            modalTitleEl.classList.add('text-purple-400');
             modalBodyEl.innerHTML = message;
 
-            // Change border to match the search button color
-            betaModalContentEl.classList.remove('border-red-500');
-            betaModalContentEl.classList.add('border-purple-500');
+            betaModalContentEl.classList.remove('border-red-500', 'border-purple-500');
+            betaModalContentEl.classList.add(isError ? 'border-red-500' : 'border-purple-500');
 
-            // Show the modal
             showBetaModal(false);
-
-            // Hide the modal automatically after 3 seconds
-            setTimeout(hideBetaModal, 3000);
+            setTimeout(hideBetaModal, 4000);
         }
 
-        /**
-         * Handles the search action.
-         */
-        function handleSearch() {
-            const query = searchInputEl.value.trim();
-
-            if (query.length > 0) {
-                console.log(`Search performed for: "${query}"`);
-                showTemporaryMessage(`Feature is in development: Searched for **"${query}"**`);
-            } else {
-                showTemporaryMessage("Please enter a search query.");
-            }
-            // Clear input after search attempt
-            searchInputEl.value = '';
-        }
-
-        /**
-         * Handles the Enter key press event in the search box.
-         */
         function handleKeydown(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default form submission
+                event.preventDefault();
                 handleSearch();
             }
         }
 
+        function showLoading() {
+            loadingSpinnerEl.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingSpinnerEl.classList.add('hidden');
+        }
+
+        // --- Gemini AI Search Logic ---
+
+        /**
+         * Uses Gemini AI with Google Search Grounding to find the TMDB ID for a query.
+         */
+        async function fetchTmdbIdWithAI(query) {
+            // UPDATED SYSTEM PROMPT: Stricter instructions for TMDB ID lookup
+            const systemPrompt = `You are an expert movie and TV database lookup service. Your task is to find the most popular and accurate The Movie Database (TMDB) ID for the exact user query. 
+                You MUST use Google Search grounding to find the ID. 
+                Return a single, valid JSON object that strictly adheres to the provided schema. DO NOT include any explanatory text, markdown notes, or preamble outside of the JSON block.
+                Set 'type' to 'tv' if it's a series, and 'movie' if it's a film. Prioritize the newest or most popular result if multiple exist.`;
+
+            const userQuery = `Find the TMDB ID, media type (movie or tv), and full title for the content: "${query}"`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "id": { "type": "string", "description": "The numeric TMDB ID as a string." },
+                            "type": { "type": "string", "description": "The media type, either 'movie' or 'tv'." },
+                            "title": { "type": "string", "description": "The accurate, full title of the content." }
+                        },
+                        required: ["id", "type", "title"]
+                    }
+                }
+            };
+
+            try {
+                const response = await fetchWithBackoff(GEMINI_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    const parsedJson = JSON.parse(jsonText);
+                    if (parsedJson.id && (parsedJson.type === 'movie' || parsedJson.type === 'tv') && parsedJson.title) {
+                        return parsedJson;
+                    }
+                }
+                // If the structured response is missing or incomplete, throw an error
+                throw new Error("AI returned invalid or incomplete data.");
+
+            } catch (error) {
+                console.error("Error fetching TMDB ID with AI:", error);
+                // Throw a custom user-friendly error message
+                throw new Error(`Could not find accurate TMDB ID for "${query}". Please try a more specific search (e.g., "Dune 2021").`);
+            }
+        }
+
+        /**
+         * Uses Gemini AI to fetch real-time search suggestions and generates an image for each.
+         */
+        async function fetchSuggestionsWithAI(query) {
+            if (query.length < 3) {
+                return [];
+            }
+
+            const systemPrompt = "You are a movie/series title predictor. Based on the user's partial input, generate a list of 5 popular and relevant movie or series titles. Return ONLY a JSON array of strings.";
+            const userQuery = `Generate 5 suggestions for a movie or series title starting with or highly relevant to: "${query}"`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: { "type": "STRING" }
+                    }
+                }
+            };
+
+            try {
+                const response = await fetchWithBackoff(GEMINI_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    const titles = JSON.parse(jsonText);
+
+                    // Generate image for each title concurrently
+                    const suggestionsWithImages = await Promise.all(titles.map(async (title) => {
+                        const imageUrl = await generateImage(title);
+                        return { title, imageUrl };
+                    }));
+
+                    return suggestionsWithImages;
+                }
+                return [];
+
+            } catch (error) {
+                console.error("Error fetching suggestions:", error);
+                return [];
+            }
+        }
+
+
+        /**
+         * Clears the player container and inserts the video iframe.
+         */
+        function loadPlayer(embedUrl, title) {
+            videoPlayerContainerEl.innerHTML = '';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = embedUrl;
+            iframe.width = "100%";
+            iframe.height = "100%";
+            iframe.frameBorder = "0";
+            iframe.allow = "fullscreen";
+            iframe.title = `VidKing Player for ${title}`;
+
+            videoPlayerContainerEl.appendChild(iframe);
+
+            console.log(`Video Player loaded for: ${title}`);
+        }
+
+        /**
+         * Constructs the VidKing embed URL based on the search result.
+         */
+        function constructEmbedUrl(result) {
+            let embedPath;
+            const queryParams = '?color=A78BFA&autoPlay=true'; // Custom color and autoplay
+
+            if (result.type === 'movie') {
+                embedPath = `movie/${result.id}`;
+            } else if (result.type === 'tv') {
+                // For TV, VidKing typically defaults to S1E1 if not specified.
+                embedPath = `tv/${result.id}/1/1`;
+            } else {
+                return null;
+            }
+
+            return `${VIDKING_BASE_URL}${embedPath}${queryParams}`;
+        }
+
+        /**
+         * Handles the main search action using the AI lookup.
+         */
+        async function handleSearch() {
+            const query = searchInputEl.value.trim();
+            renderSuggestions([]); // Hide suggestions when searching
+
+            if (query.length === 0) {
+                showTemporaryMessage("Please enter a movie or series title to search.", true);
+                return;
+            }
+
+            showLoading();
+            videoPlayerContainerEl.innerHTML = `<p class="video-placeholder-text">Searching for: "${query}"...</p>`;
+
+            try {
+                // 1. Fetch data from AI
+                const searchResult = await fetchTmdbIdWithAI(query);
+
+                // 2. Construct Embed URL
+                const embedUrl = constructEmbedUrl(searchResult);
+
+                if (embedUrl) {
+                    // 3. Load Player
+                    loadPlayer(embedUrl, searchResult.title);
+
+                    // 4. Provide Feedback
+                    let message = `Successfully found **${searchResult.title}** (${searchResult.type.toUpperCase()}) and loading player.`;
+                    if (searchResult.type === 'tv') {
+                        message += ` (Defaulting to S1E1)`;
+                    }
+                    showTemporaryMessage(message);
+                } else {
+                    showTemporaryMessage("Error: Could not construct a valid embed URL from AI result.", true);
+                }
+
+            } catch (error) {
+                // Display the placeholder text in the player area again
+                videoPlayerContainerEl.innerHTML = `<p class="video-placeholder-text">Search for a Movie or TV Series to play it here.</p>`;
+                showTemporaryMessage(error.message, true);
+            } finally {
+                hideLoading();
+            }
+
+            // Clear input after search attempt
+            searchInputEl.value = '';
+        }
+
+        // --- Suggestion UI Logic ---
+
+        function renderSuggestions(suggestions) {
+            suggestionsListEl.innerHTML = '';
+
+            if (suggestions && suggestions.length > 0) {
+                suggestions.forEach(suggestion => {
+                    const li = document.createElement('li');
+                    li.className = 'suggestion-item';
+                    li.onclick = () => {
+                        searchInputEl.value = suggestion.title;
+                        renderSuggestions([]); // Clear suggestions
+                        handleSearch(); // Trigger search immediately
+                    };
+
+                    const img = document.createElement('img');
+                    img.className = 'suggestion-thumbnail';
+                    img.src = suggestion.imageUrl || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUAAAAEAAAABACAYAAADmEh0wAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAQKADAAQAAAABAAAAQAAAAABFqgPPAAAAHElEQVR42mNkYGD4T4AKvEANtAAxMA+FhgMAAE8QAB8QG/LCAAAAAElFTkSuQmCC'; // Placeholder if image fails
+                    img.alt = `Poster for ${suggestion.title}`;
+
+                    const span = document.createElement('span');
+                    span.textContent = suggestion.title;
+                    span.classList.add('flex-grow'); // Allows text to take remaining space
+
+                    li.appendChild(img);
+                    li.appendChild(span);
+                    suggestionsListEl.appendChild(li);
+                });
+                suggestionsListEl.classList.add('active');
+            } else {
+                suggestionsListEl.classList.remove('active');
+            }
+        }
+
+        async function handleInput() {
+            clearTimeout(typingTimer);
+            const query = searchInputEl.value.trim();
+            if (query.length < 3) {
+                renderSuggestions([]);
+                return;
+            }
+
+            // Show a temporary loading indicator immediately
+            suggestionsListEl.innerHTML = `
+                <li class="loading-suggestion">
+                    <div class="spinner"></div>
+                    Generating suggestions...
+                </li>
+            `;
+            suggestionsListEl.classList.add('active');
+
+            // Set a timer to fetch suggestions after DEBOUNCE_TIME
+            typingTimer = setTimeout(async () => {
+                const suggestions = await fetchSuggestionsWithAI(query);
+                renderSuggestions(suggestions);
+            }, DEBOUNCE_TIME);
+        }
 
         // --- Initialization ---
 
@@ -747,7 +1003,6 @@
             englishDateCombinedEl = document.getElementById('english-date-combined');
             nepaliDateEl = document.getElementById('nepali-date');
             timeDisplayEl = document.getElementById('time-display');
-            socialIconsEl = document.getElementById('social-icons');
             mainContentEl = document.getElementById('main-content');
             headerSeparatorEl = document.getElementById('header-separator');
             betaModalEl = document.getElementById('beta-modal');
@@ -755,11 +1010,14 @@
             modalTitleEl = document.getElementById('modal-title');
             modalBodyEl = document.getElementById('modal-body');
             searchInputEl = document.getElementById('search-input');
+            videoPlayerContainerEl = document.getElementById('video-player-container');
+            loadingSpinnerEl = document.getElementById('loading-spinner');
+            suggestionsListEl = document.getElementById('suggestions-list');
 
             // Set initial greeting
             greetingTextEl.textContent = getGreeting();
 
-            // Start the clock and date intervals, includes retry logic for Nepali Date
+            // Start the clock and date intervals
             startClockAndDates();
 
             // Log the update time to the console
@@ -771,27 +1029,21 @@
          */
         function logLastUpdated() {
             const date = new Date(LAST_UPDATED_TIMESTAMP_STRING);
-
             if (isNaN(date.getTime())) {
                 console.error("Could not parse last updated timestamp.");
                 return;
             }
-
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             const datePart = `${year}/${month}/${day}`;
-
             let hours = date.getHours();
             const minutes = String(date.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
-
             hours = hours % 12;
             hours = hours ? hours : 12;
             const hoursStr = String(hours).padStart(2, '0');
-
             const timePart = `${hoursStr}:${minutes} ${ampm}`;
-
             console.log(`Page Last Updated: ${datePart}-${timePart}`);
         }
 
@@ -799,12 +1051,11 @@
 
         // Expose functions globally for HTML onclick
         window.toggleQuoteRotation = toggleQuoteRotation;
-        window.setQuoteRotationState = setQuoteRotationState;
-        window.displayNextQuote = displayNextQuote;
         window.showBetaModal = showBetaModal;
         window.hideBetaModal = hideBetaModal;
         window.handleSearch = handleSearch;
         window.handleKeydown = handleKeydown;
+        window.handleInput = handleInput;
     </script>
 </body>
 
